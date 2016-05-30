@@ -1,5 +1,5 @@
 package com.havel.batch;
 
-public interface Batch {
+public class BatchSummary {
 
 }

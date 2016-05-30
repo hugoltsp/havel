@@ -1,12 +1,10 @@
 package com.havel.data.output;
 
-import com.havel.data.mapper.RowMapper;
-import com.havel.data.utils.Result;
+import java.sql.ResultSet;
 
-public class PojoOutput<O> implements Output<O>, RowMapper {
+public class PojoOutput<O> implements OutputMapper<O> {
 
-	@Override
-	public O getData(Result result) {
+	public O getData(ResultSet result) {
 		return null;
 	}
 

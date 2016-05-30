@@ -1,5 +1,5 @@
 package com.havel.data.utils;
 
-public class Result {
+public class RowMapper {
 
 }
