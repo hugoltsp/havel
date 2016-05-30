@@ -50,12 +50,16 @@ public final class Batch {
 	}
 
 	private static class UpdateBuilder extends BasicBuilder {
-		private static final int DEFAULT_BULK_SIZE = 100;
 
+		private static final int DEFAULT_BULK_SIZE = 100;
 		private int bulkSize = DEFAULT_BULK_SIZE;
 
 		public void size(int size) {
 			this.bulkSize = size;
+		}
+
+		public int getBulkSize() {
+			return bulkSize;
 		}
 
 	}
@@ -66,8 +70,12 @@ public final class Batch {
 		private OutputMapper<O> outputMapper;
 		private ResultSet resultSet;
 
-		public BulkSelectBuilder<O> datastore(Connection datastore) {
-			basicBuilder.connection(datastore);
+		public BulkSelectBuilder() {
+			this.basicBuilder = new BasicBuilder();
+		}
+
+		public BulkSelectBuilder<O> connection(Connection connection) {
+			basicBuilder.connection(connection);
 			return this;
 		}
 
@@ -78,7 +86,7 @@ public final class Batch {
 
 		public BulkSelectBuilder<O> outputMapper(OutputMapper<O> outputMapper) {
 			this.outputMapper = outputMapper;
-			return null;
+			return this;
 		}
 
 		public Stream<O> parallelSelect() {
