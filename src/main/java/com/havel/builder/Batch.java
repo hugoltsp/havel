@@ -44,14 +44,6 @@ public final class Batch {
 			return input;
 		}
 
-		public Connection getConnection() {
-			return connection;
-		}
-
-		public PreparedStatement getPreparedStatement() {
-			return preparedStatement;
-		}
-
 		@Override
 		public void close() throws SQLException {
 			this.preparedStatement.close();
@@ -78,7 +70,6 @@ public final class Batch {
 
 		private BasicBuilder basicBuilder;
 		private OutputMapper<O> outputMapper;
-		private ResultSet resultSet;
 
 		public BulkSelectBuilder() {
 			this.basicBuilder = new BasicBuilder();
@@ -100,16 +91,14 @@ public final class Batch {
 		}
 
 		public Stream<O> select() throws HavelException {
-			try {
-				ResultSet resultSet = build();
-				return StreamSupport.stream(spliterator(resultSet), false);
-			} finally {
+			ResultSet resultSet = build();
+			return StreamSupport.stream(spliterator(resultSet), false).onClose(() -> {
 				try {
-					this.basicBuilder.close();
-				} catch (SQLException e) {
+					basicBuilder.close();
+				} catch (Exception e) {
 					throw new HavelException(e);
 				}
-			}
+			});
 		}
 
 		private AbstractSpliterator<O> spliterator(ResultSet resultSet) {
@@ -130,8 +119,9 @@ public final class Batch {
 
 		private ResultSet build() throws HavelException {
 			try {
-				this.resultSet = this.basicBuilder.getPreparedStatement()
-						.executeQuery(this.basicBuilder.getInput().getStatement());
+				this.basicBuilder.preparedStatement = this.basicBuilder.connection
+						.prepareStatement(this.basicBuilder.getInput().getStatement());
+				ResultSet resultSet = this.basicBuilder.preparedStatement.executeQuery();
 				return resultSet;
 			} catch (SQLException e) {
 				throw new HavelException(e);
