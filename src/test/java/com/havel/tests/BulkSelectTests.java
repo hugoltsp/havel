@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.stream.Stream;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.havel.builder.Batch;
@@ -16,12 +18,18 @@ import com.havel.tests.util.User;
 
 public class BulkSelectTests {
 
+	private Connection connection;
+
+	@Before
+	public void prepareConnection() throws Exception {
+		connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "");
+	}
+
 	@Test
-	public void test() throws Exception {
-		Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "");
-		
-		Stream<User> select = Batch.<User> bulkSelect().connection(connection)
-				.input(new SqlInput("select * from user")).outputMapper(new OutputMapper<User>() {
+	public void testSelectUsers() throws Exception {
+
+		Stream<User> select = Batch.<User> bulkSelect().connection(connection).input(new SqlInput("select * from user"))
+				.outputMapper(new OutputMapper<User>() {
 
 					@Override
 					public User getData(ResultSet result) {
@@ -42,8 +50,8 @@ public class BulkSelectTests {
 						return user;
 					}
 				}).select();
-		
-		select.forEach(System.out::println);
+
+		Assert.assertTrue(select.findAny().isPresent());
 	}
 
 }
