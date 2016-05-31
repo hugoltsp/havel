@@ -13,6 +13,7 @@ import java.util.stream.StreamSupport;
 
 import com.havel.data.input.Input;
 import com.havel.data.output.OutputMapper;
+import com.havel.data.utils.ConnectionConfig;
 import com.havel.exception.HavelException;
 
 public final class Batch {
@@ -28,25 +29,33 @@ public final class Batch {
 
 	private static class BasicBuilder implements AutoCloseable {
 
+		private ConnectionConfig connectionConfig;
 		private Connection connection;
 		private Input input;
 		private PreparedStatement preparedStatement;
 
-		public void connection(Connection datastore) {
+		private void connectionConfig(ConnectionConfig connectionConfig) {
+			this.connectionConfig = connectionConfig;
+		}
+
+		private void connection(Connection datastore) {
 			this.connection = datastore;
 		}
 
-		public void input(Input input) {
+		private void input(Input input) {
 			this.input = input;
 		}
 
-		public Input getInput() {
+		private Input getInput() {
 			return input;
 		}
 
 		@Override
 		public void close() throws SQLException {
 			this.preparedStatement.close();
+			if (connectionConfig != null) {
+				connectionConfig.onAfter(connection);
+			}
 		}
 
 	}
@@ -76,17 +85,22 @@ public final class Batch {
 		}
 
 		public BulkSelectBuilder<O> connection(Connection connection) {
-			basicBuilder.connection(connection);
+			this.basicBuilder.connection(connection);
 			return this;
 		}
 
 		public BulkSelectBuilder<O> input(Input input) {
-			basicBuilder.input(input);
+			this.basicBuilder.input(input);
 			return this;
 		}
 
 		public BulkSelectBuilder<O> outputMapper(OutputMapper<O> outputMapper) {
 			this.outputMapper = outputMapper;
+			return this;
+		}
+
+		private BulkSelectBuilder<O> connectionConfig(ConnectionConfig connectionConfig) {
+			this.basicBuilder.connectionConfig(connectionConfig);
 			return this;
 		}
 
@@ -119,6 +133,10 @@ public final class Batch {
 
 		private ResultSet build() throws HavelException {
 			try {
+				if (this.basicBuilder.connectionConfig != null) {
+					this.basicBuilder.connectionConfig.onBefore(this.basicBuilder.connection);
+				}
+
 				this.basicBuilder.preparedStatement = this.basicBuilder.connection
 						.prepareStatement(this.basicBuilder.getInput().getStatement());
 				ResultSet resultSet = this.basicBuilder.preparedStatement.executeQuery();
