@@ -52,10 +52,11 @@ public final class Batch {
 
 		@Override
 		public void close() throws SQLException {
-			this.preparedStatement.close();
 			if (connectionConfig != null) {
 				connectionConfig.onAfter(connection);
 			}
+
+			this.preparedStatement.close();
 		}
 
 	}
@@ -99,7 +100,7 @@ public final class Batch {
 			return this;
 		}
 
-		private BulkSelectBuilder<O> connectionConfig(ConnectionConfig connectionConfig) {
+		public BulkSelectBuilder<O> connectionConfig(ConnectionConfig connectionConfig) {
 			this.basicBuilder.connectionConfig(connectionConfig);
 			return this;
 		}

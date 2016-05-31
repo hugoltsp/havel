@@ -16,14 +16,7 @@ import com.havel.data.output.OutputMapper;
 import com.havel.exception.HavelException;
 import com.havel.tests.util.User;
 
-public class BulkSelectTests {
-
-	private Connection connection;
-
-	@Before
-	public void prepareConnection() throws Exception {
-		connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "");
-	}
+public class BulkSelectTests extends HavelTests {
 
 	@Test
 	public void testSelectUsers() throws Exception {
