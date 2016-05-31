@@ -26,10 +26,11 @@ public final class Batch {
 		return builder;
 	}
 
-	private static class BasicBuilder {
+	private static class BasicBuilder implements AutoCloseable {
 
 		private Connection connection;
 		private Input input;
+		private PreparedStatement preparedStatement;
 
 		public void connection(Connection datastore) {
 			this.connection = datastore;
@@ -47,9 +48,18 @@ public final class Batch {
 			return connection;
 		}
 
+		public PreparedStatement getPreparedStatement() {
+			return preparedStatement;
+		}
+
+		@Override
+		public void close() throws SQLException {
+			this.preparedStatement.close();
+		}
+
 	}
 
-	private static class UpdateBuilder extends BasicBuilder {
+	private static class UpdateBuilder {
 
 		private static final int DEFAULT_BULK_SIZE = 100;
 		private int bulkSize = DEFAULT_BULK_SIZE;
@@ -89,14 +99,17 @@ public final class Batch {
 			return this;
 		}
 
-		public Stream<O> parallelSelect() {
-			ResultSet resultSet = build();
-			return StreamSupport.stream(spliterator(resultSet), true);
-		}
-
-		public Stream<O> select() {
-			ResultSet resultSet = build();
-			return StreamSupport.stream(spliterator(resultSet), false);
+		public Stream<O> select() throws HavelException {
+			try {
+				ResultSet resultSet = build();
+				return StreamSupport.stream(spliterator(resultSet), false);
+			} finally {
+				try {
+					this.basicBuilder.close();
+				} catch (SQLException e) {
+					throw new HavelException(e);
+				}
+			}
 		}
 
 		private AbstractSpliterator<O> spliterator(ResultSet resultSet) {
@@ -115,10 +128,10 @@ public final class Batch {
 			};
 		}
 
-		private ResultSet build() {
-			try (PreparedStatement ps = this.basicBuilder.getConnection()
-					.prepareStatement(this.basicBuilder.getInput().getStatement());) {
-				this.resultSet = ps.executeQuery();
+		private ResultSet build() throws HavelException {
+			try {
+				this.resultSet = this.basicBuilder.getPreparedStatement()
+						.executeQuery(this.basicBuilder.getInput().getStatement());
 				return resultSet;
 			} catch (SQLException e) {
 				throw new HavelException(e);
