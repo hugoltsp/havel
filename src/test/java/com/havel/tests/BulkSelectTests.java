@@ -1,13 +1,10 @@
 package com.havel.tests;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.havel.builder.Batch;

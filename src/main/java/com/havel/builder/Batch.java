@@ -7,13 +7,14 @@ import java.sql.SQLException;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.havel.data.input.Input;
 import com.havel.data.output.OutputMapper;
-import com.havel.data.utils.ConnectionConfig;
+import com.havel.data.utils.config.ConnectionConfig;
 import com.havel.exception.HavelException;
 
 public final class Batch {
@@ -27,6 +28,11 @@ public final class Batch {
 		return builder;
 	}
 
+	public static BulkUpdateBuilder bulkUpdate(){
+		BulkUpdateBuilder bulkUpdateBuilder = new BulkUpdateBuilder();
+		return bulkUpdateBuilder;
+	}
+	
 	private static class BasicBuilder implements AutoCloseable {
 
 		private ConnectionConfig connectionConfig;
@@ -61,10 +67,42 @@ public final class Batch {
 
 	}
 
-	private static class UpdateBuilder {
+	public static class BulkUpdateBuilder {
 
+		public static class StatementMapper{
+			
+			private PreparedStatement statement; 
+			
+		}
+		
 		private static final int DEFAULT_BULK_SIZE = 100;
+
+		private BasicBuilder basicBuilder;
 		private int bulkSize = DEFAULT_BULK_SIZE;
+		private String sqlStatement;
+		private Object[] parameters;
+		private BiConsumer<PreparedStatement, ?> mapper;
+
+		
+		
+		public BulkUpdateBuilder() {
+			this.basicBuilder = new BasicBuilder();
+		}
+
+		public BulkUpdateBuilder connection(Connection connection) {
+			this.basicBuilder.connection(connection);
+			return this;
+		}
+
+		public BulkUpdateBuilder input(Input input) {
+			this.basicBuilder.input(input);
+			return this;
+		}
+
+		public BulkUpdateBuilder connectionConfig(ConnectionConfig connectionConfig) {
+			this.basicBuilder.connectionConfig(connectionConfig);
+			return this;
+		}
 
 		public void size(int size) {
 			this.bulkSize = size;
@@ -74,6 +112,13 @@ public final class Batch {
 			return bulkSize;
 		}
 
+		public <T> BulkUpdateBuilder input(String sqlStatement, T[] parameters,
+				BiConsumer<PreparedStatement, T> mapper) {
+			this.sqlStatement = sqlStatement;
+			this.parameters = parameters;
+			this.mapper = mapper;
+			return this;
+		}
 	}
 
 	public static class BulkSelectBuilder<O> {
