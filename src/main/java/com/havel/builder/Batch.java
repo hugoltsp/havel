@@ -4,16 +4,20 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.havel.data.input.Input;
 import com.havel.data.output.OutputMapper;
+import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.ConnectionConfig;
 import com.havel.exception.HavelException;
 
@@ -28,12 +32,12 @@ public final class Batch {
 		return builder;
 	}
 
-	public static BulkUpdateBuilder bulkUpdate(){
-		BulkUpdateBuilder bulkUpdateBuilder = new BulkUpdateBuilder();
+	public static <T> BulkUpdateBuilder<T> bulkUpdate() {
+		BulkUpdateBuilder<T> bulkUpdateBuilder = new BulkUpdateBuilder<>();
 		return bulkUpdateBuilder;
 	}
-	
-	private static class BasicBuilder implements AutoCloseable {
+
+	private static class Builder implements AutoCloseable {
 
 		private ConnectionConfig connectionConfig;
 		private Connection connection;
@@ -67,39 +71,49 @@ public final class Batch {
 
 	}
 
-	public static class BulkUpdateBuilder {
+	public static class BulkUpdateBuilder<T> {
 
-		public static class StatementMapper{
-			
-			private PreparedStatement statement; 
-			
+		public static class StatementMapper {
+
+			private Map<Integer, Object> params = new HashMap<>();
+			private int position;
+
+			public StatementMapper addParameter(Object value) {
+				this.params.put(position++, value);
+				return this;
+			}
+
 		}
-		
+
+		public static interface StatementMapperFunction<T>
+			extends BiFunction<StatementMapper, T, StatementMapper> {
+
+		}
+
 		private static final int DEFAULT_BULK_SIZE = 100;
 
-		private BasicBuilder basicBuilder;
+		private Builder basicBuilder;
 		private int bulkSize = DEFAULT_BULK_SIZE;
 		private String sqlStatement;
-		private Object[] parameters;
-		private BiConsumer<PreparedStatement, ?> mapper;
+		private T[] parameters;
+		private StatementMapperFunction<T> statementMapperFunction;
+		private StatementMapper statementMapper;
 
-		
-		
 		public BulkUpdateBuilder() {
-			this.basicBuilder = new BasicBuilder();
+			this.basicBuilder = new Builder();
 		}
 
-		public BulkUpdateBuilder connection(Connection connection) {
+		public BulkUpdateBuilder<T> connection(Connection connection) {
 			this.basicBuilder.connection(connection);
 			return this;
 		}
 
-		public BulkUpdateBuilder input(Input input) {
+		public BulkUpdateBuilder<T> input(Input input) {
 			this.basicBuilder.input(input);
 			return this;
 		}
 
-		public BulkUpdateBuilder connectionConfig(ConnectionConfig connectionConfig) {
+		public BulkUpdateBuilder<T> connectionConfig(ConnectionConfig connectionConfig) {
 			this.basicBuilder.connectionConfig(connectionConfig);
 			return this;
 		}
@@ -112,22 +126,42 @@ public final class Batch {
 			return bulkSize;
 		}
 
-		public <T> BulkUpdateBuilder input(String sqlStatement, T[] parameters,
-				BiConsumer<PreparedStatement, T> mapper) {
+		public BulkUpdateBuilder<T> input(String sqlStatement, T[] parameters,
+				StatementMapperFunction<T> statementMapperFunction) {
 			this.sqlStatement = sqlStatement;
 			this.parameters = parameters;
-			this.mapper = mapper;
+			this.statementMapperFunction = statementMapperFunction;
 			return this;
+		}
+
+		public BatchUpdateSummary execute() throws HavelException {
+			Optional<BatchUpdateSummary> opBatchUpdateSummary = Optional.<BatchUpdateSummary> empty();
+
+			try {
+
+				if (this.basicBuilder.connectionConfig != null) {
+					this.basicBuilder.connectionConfig.onBefore(this.basicBuilder.connection);
+				}
+
+				Stream.of(parameters);
+				this.basicBuilder.preparedStatement = this.basicBuilder.connection.prepareStatement(this.sqlStatement);
+
+			} catch (SQLException e) {
+				throw new HavelException(e);
+			}
+
+			return opBatchUpdateSummary.orElseThrow(HavelException::new);
+
 		}
 	}
 
 	public static class BulkSelectBuilder<O> {
 
-		private BasicBuilder basicBuilder;
+		private Builder basicBuilder;
 		private OutputMapper<O> outputMapper;
 
 		public BulkSelectBuilder() {
-			this.basicBuilder = new BasicBuilder();
+			this.basicBuilder = new Builder();
 		}
 
 		public BulkSelectBuilder<O> connection(Connection connection) {
