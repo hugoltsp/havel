@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -78,15 +79,18 @@ public final class Batch {
 			private Map<Integer, Object> params = new HashMap<>();
 			private int position;
 
+			private Map<Integer, Object> getParams() {
+				return params;
+			}
+
 			public StatementMapper addParameter(Object value) {
-				this.params.put(position++, value);
+				this.params.put(++position, value);
 				return this;
 			}
 
 		}
 
-		public static interface StatementMapperFunction<T>
-			extends BiFunction<StatementMapper, T, StatementMapper> {
+		public static interface StatementMapperFunction<T> extends BiFunction<StatementMapper, T, StatementMapper> {
 
 		}
 
@@ -97,7 +101,6 @@ public final class Batch {
 		private String sqlStatement;
 		private T[] parameters;
 		private StatementMapperFunction<T> statementMapperFunction;
-		private StatementMapper statementMapper;
 
 		public BulkUpdateBuilder() {
 			this.basicBuilder = new Builder();
@@ -118,8 +121,9 @@ public final class Batch {
 			return this;
 		}
 
-		public void size(int size) {
+		public BulkUpdateBuilder<T> size(int size) {
 			this.bulkSize = size;
+			return this;
 		}
 
 		public int getBulkSize() {
@@ -134,23 +138,47 @@ public final class Batch {
 			return this;
 		}
 
-		public BatchUpdateSummary execute() throws HavelException {
-			Optional<BatchUpdateSummary> opBatchUpdateSummary = Optional.<BatchUpdateSummary> empty();
+		public void execute() throws HavelException {
+//			Optional<BatchUpdateSummary> opBatchUpdateSummary = Optional.<BatchUpdateSummary> empty();
 
-			try {
+			try (Builder builder = this.basicBuilder) {
 
-				if (this.basicBuilder.connectionConfig != null) {
-					this.basicBuilder.connectionConfig.onBefore(this.basicBuilder.connection);
+				if (builder.connectionConfig != null) {
+					builder.connectionConfig.onBefore(builder.connection);
 				}
 
-				Stream.of(parameters);
-				this.basicBuilder.preparedStatement = this.basicBuilder.connection.prepareStatement(this.sqlStatement);
+				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
+
+				Stream.of(parameters).map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
+
+					long count = 0;
+
+					try {
+
+						for (Entry<Integer, Object> param : s.getParams().entrySet()) {
+							builder.preparedStatement.setObject(param.getKey(), param.getValue());
+						}
+
+						builder.preparedStatement.addBatch();
+						if ((++count % bulkSize) == 0) {
+							builder.preparedStatement.executeBatch();
+							builder.preparedStatement.clearBatch();
+						}
+
+					} catch (SQLException e) {
+						throw new HavelException(e);
+					}
+
+				});
+
+				builder.preparedStatement.executeBatch();
+				builder.preparedStatement.clearBatch();
 
 			} catch (SQLException e) {
 				throw new HavelException(e);
 			}
 
-			return opBatchUpdateSummary.orElseThrow(HavelException::new);
+//			return opBatchUpdateSummary.orElseThrow(HavelException::new);
 
 		}
 	}
