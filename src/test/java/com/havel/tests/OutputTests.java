@@ -12,9 +12,9 @@ public class OutputTests extends HavelTests {
 
 	@Test
 	public void jpaOutputMapperTest() throws Exception {
-		UserEntity userEntity = Batch.<UserEntity> bulkSelect().connection(connection)
-				.input(new SqlInput("select * from user where id=1"))
-				.outputMapper(new JpaOutputMapper<UserEntity>(UserEntity.class)).select().findAny().get();
+		UserEntity userEntity = Batch.<UserEntity> bulkSelect().withConnection(connection)
+				.withInput(new SqlInput("select * from user where id=1"))
+				.withOutputMapper(new JpaOutputMapper<UserEntity>(UserEntity.class)).select().findAny().get();
 
 		Assert.assertTrue(userEntity != null);
 		Assert.assertTrue(userEntity.getId() != null);

@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
@@ -18,7 +17,6 @@ import java.util.stream.StreamSupport;
 
 import com.havel.data.input.Input;
 import com.havel.data.output.OutputMapper;
-import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.ConnectionConfig;
 import com.havel.exception.HavelException;
 
@@ -45,15 +43,15 @@ public final class Batch {
 		private Input input;
 		private PreparedStatement preparedStatement;
 
-		private void connectionConfig(ConnectionConfig connectionConfig) {
+		private void withConnectionConfig(ConnectionConfig connectionConfig) {
 			this.connectionConfig = connectionConfig;
 		}
 
-		private void connection(Connection datastore) {
+		private void withConnection(Connection datastore) {
 			this.connection = datastore;
 		}
 
-		private void input(Input input) {
+		private void withInput(Input input) {
 			this.input = input;
 		}
 
@@ -94,10 +92,10 @@ public final class Batch {
 
 		}
 
-		private static final int DEFAULT_BULK_SIZE = 100;
+		private static final long DEFAULT_BULK_SIZE = 100;
 
 		private Builder basicBuilder;
-		private int bulkSize = DEFAULT_BULK_SIZE;
+		private long bulkSize = DEFAULT_BULK_SIZE;
 		private String sqlStatement;
 		private T[] parameters;
 		private StatementMapperFunction<T> statementMapperFunction;
@@ -106,31 +104,31 @@ public final class Batch {
 			this.basicBuilder = new Builder();
 		}
 
-		public BulkUpdateBuilder<T> connection(Connection connection) {
-			this.basicBuilder.connection(connection);
+		public BulkUpdateBuilder<T> withConnection(Connection connection) {
+			this.basicBuilder.withConnection(connection);
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> input(Input input) {
-			this.basicBuilder.input(input);
+		public BulkUpdateBuilder<T> withInput(Input input) {
+			this.basicBuilder.withInput(input);
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> connectionConfig(ConnectionConfig connectionConfig) {
-			this.basicBuilder.connectionConfig(connectionConfig);
+		public BulkUpdateBuilder<T> withConnectionConfig(ConnectionConfig connectionConfig) {
+			this.basicBuilder.withConnectionConfig(connectionConfig);
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> size(int size) {
+		public BulkUpdateBuilder<T> withBulkSize(long size) {
 			this.bulkSize = size;
 			return this;
 		}
 
-		public int getBulkSize() {
+		public long getBulkSize() {
 			return bulkSize;
 		}
 
-		public BulkUpdateBuilder<T> input(String sqlStatement, T[] parameters,
+		public BulkUpdateBuilder<T> withInput(String sqlStatement, T[] parameters,
 				StatementMapperFunction<T> statementMapperFunction) {
 			this.sqlStatement = sqlStatement;
 			this.parameters = parameters;
@@ -192,23 +190,23 @@ public final class Batch {
 			this.basicBuilder = new Builder();
 		}
 
-		public BulkSelectBuilder<O> connection(Connection connection) {
-			this.basicBuilder.connection(connection);
+		public BulkSelectBuilder<O> withConnection(Connection connection) {
+			this.basicBuilder.withConnection(connection);
 			return this;
 		}
 
-		public BulkSelectBuilder<O> input(Input input) {
-			this.basicBuilder.input(input);
+		public BulkSelectBuilder<O> withInput(Input input) {
+			this.basicBuilder.withInput(input);
 			return this;
 		}
 
-		public BulkSelectBuilder<O> outputMapper(OutputMapper<O> outputMapper) {
+		public BulkSelectBuilder<O> withOutputMapper(OutputMapper<O> outputMapper) {
 			this.outputMapper = outputMapper;
 			return this;
 		}
 
-		public BulkSelectBuilder<O> connectionConfig(ConnectionConfig connectionConfig) {
-			this.basicBuilder.connectionConfig(connectionConfig);
+		public BulkSelectBuilder<O> withConnectionConfig(ConnectionConfig connectionConfig) {
+			this.basicBuilder.withConnectionConfig(connectionConfig);
 			return this;
 		}
 

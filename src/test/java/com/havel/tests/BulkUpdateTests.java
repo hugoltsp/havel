@@ -16,9 +16,9 @@ public class BulkUpdateTests extends HavelTests {
 
 	@Test
 	public void testBulkUpdate() throws Exception {
-		Batch.<User> bulkUpdate().connection(connection).size(1000)
-				.connectionConfig(DefaultConnectionConfigs.BEGIN_COMMIT_TRANSACTION)
-				.input("INSERT INTO user (name, email) VALUES (?, ?)", createMockUsers(),
+		Batch.<User> bulkUpdate().withConnection(connection).withBulkSize(1000)
+				.withConnectionConfig(DefaultConnectionConfigs.BEGIN_COMMIT_TRANSACTION)
+				.withInput("INSERT INTO user (name, email) VALUES (?, ?)", createMockUsers(),
 						(t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail()))
 				.execute();
 		;
@@ -32,7 +32,7 @@ public class BulkUpdateTests extends HavelTests {
 			user.setEmail(UUID.randomUUID().toString());
 			user.setName(UUID.randomUUID().toString());
 			return user;
-		}).limit(10000).collect(Collectors.toList()));
+		}).limit(100000).collect(Collectors.toList()));
 
 		return users.toArray(new User[users.size()]);
 	}
