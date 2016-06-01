@@ -17,6 +17,7 @@ import java.util.stream.StreamSupport;
 
 import com.havel.data.input.Input;
 import com.havel.data.output.OutputMapper;
+import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.ConnectionConfig;
 import com.havel.exception.HavelException;
 
@@ -109,11 +110,6 @@ public final class Batch {
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> withInput(Input input) {
-			this.basicBuilder.withInput(input);
-			return this;
-		}
-
 		public BulkUpdateBuilder<T> withConnectionConfig(ConnectionConfig connectionConfig) {
 			this.basicBuilder.withConnectionConfig(connectionConfig);
 			return this;
@@ -128,6 +124,11 @@ public final class Batch {
 			return bulkSize;
 		}
 
+		public BulkUpdateBuilder<T> withInput(Input input) {
+			this.basicBuilder.withInput(input);
+			return this;
+		}
+
 		public BulkUpdateBuilder<T> withInput(String sqlStatement, T[] parameters,
 				StatementMapperFunction<T> statementMapperFunction) {
 			this.sqlStatement = sqlStatement;
@@ -136,8 +137,8 @@ public final class Batch {
 			return this;
 		}
 
-		public void execute() throws HavelException {
-//			Optional<BatchUpdateSummary> opBatchUpdateSummary = Optional.<BatchUpdateSummary> empty();
+		public BatchUpdateSummary execute() throws HavelException {
+			BatchUpdateSummary summary = new BatchUpdateSummary();
 
 			try (Builder builder = this.basicBuilder) {
 
@@ -158,8 +159,9 @@ public final class Batch {
 						}
 
 						builder.preparedStatement.addBatch();
+
 						if ((++count % bulkSize) == 0) {
-							builder.preparedStatement.executeBatch();
+							summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
 							builder.preparedStatement.clearBatch();
 						}
 
@@ -169,15 +171,14 @@ public final class Batch {
 
 				});
 
-				builder.preparedStatement.executeBatch();
+				summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
 				builder.preparedStatement.clearBatch();
 
 			} catch (SQLException e) {
 				throw new HavelException(e);
 			}
 
-//			return opBatchUpdateSummary.orElseThrow(HavelException::new);
-
+			return summary;
 		}
 	}
 

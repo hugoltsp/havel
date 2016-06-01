@@ -4,15 +4,19 @@ import java.util.Arrays;
 
 public class BatchUpdateSummary {
 
-	private Long updateCount;
+	private long updateCount;
 	private long[] generatedIds;
 
-	public Long getUpdateCount() {
+	public long getUpdateCount() {
 		return updateCount;
 	}
 
-	public void setUpdateCount(Long updateCount) {
+	public void setUpdateCount(long updateCount) {
 		this.updateCount = updateCount;
+	}
+
+	public void sumUpdateCount(long updateCount) {
+		this.updateCount = updateCount + this.updateCount;
 	}
 
 	public long[] getGeneratedIds() {

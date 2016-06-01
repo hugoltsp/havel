@@ -6,9 +6,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.havel.builder.Batch;
+import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.DefaultConnectionConfigs;
 import com.havel.tests.util.User;
 
@@ -16,12 +18,17 @@ public class BulkUpdateTests extends HavelTests {
 
 	@Test
 	public void testBulkUpdate() throws Exception {
-		Batch.<User> bulkUpdate().withConnection(connection).withBulkSize(1000)
+		long expectedUpdateCount = 1500;
+
+		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withBulkSize(500)
 				.withConnectionConfig(DefaultConnectionConfigs.BEGIN_COMMIT_TRANSACTION)
 				.withInput("INSERT INTO user (name, email) VALUES (?, ?)", createMockUsers(),
 						(t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail()))
 				.execute();
-		;
+
+		System.out.println(summary);
+
+		Assert.assertEquals(expectedUpdateCount, summary.getUpdateCount());
 	}
 
 	private static User[] createMockUsers() {
@@ -32,7 +39,7 @@ public class BulkUpdateTests extends HavelTests {
 			user.setEmail(UUID.randomUUID().toString());
 			user.setName(UUID.randomUUID().toString());
 			return user;
-		}).limit(100000).collect(Collectors.toList()));
+		}).limit(1500).collect(Collectors.toList()));
 
 		return users.toArray(new User[users.size()]);
 	}
