@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.havel.data.input.InputSupplier;
 import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
@@ -101,9 +103,10 @@ public final class Batch {
 		private Builder basicBuilder;
 		private long bulkSize = DEFAULT_BULK_SIZE;
 		private String sqlStatement;
-		private List<T> inputData;
+		private List<T> inputData = new ArrayList<>(0);
 		private StatementMapperFunction<T> statementMapperFunction;
-
+		private InputSupplier<T> inputSupplier;
+		
 		public BulkUpdateBuilder() {
 			this.basicBuilder = new Builder();
 		}
@@ -127,15 +130,32 @@ public final class Batch {
 			return bulkSize;
 		}
 
+		public BulkUpdateBuilder<T> withInputSupplier(InputSupplier<T> inputSupplier){
+			this.inputSupplier = inputSupplier;
+			return this;
+		}
+		
 		public BulkUpdateBuilder<T> withSqlInput(SqlInput input) {
 			this.basicBuilder.withSqlInput(input);
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> withInput(String sqlStatement, List<T> inputData,
-				StatementMapperFunction<T> statementMapperFunction) {
+		public BulkUpdateBuilder<T> withSqlStatement(String sqlStatement) {
 			this.sqlStatement = sqlStatement;
-			this.inputData = inputData;
+			return this;
+		}
+
+		public BulkUpdateBuilder<T> addData(T data) {
+			this.inputData.add(data);
+			return this;
+		}
+
+		public BulkUpdateBuilder<T> addData(List<T> data) {
+			this.inputData.addAll(data);
+			return this;
+		}
+
+		public BulkUpdateBuilder<T> withStatementMapper(StatementMapperFunction<T> statementMapperFunction) {
 			this.statementMapperFunction = statementMapperFunction;
 			return this;
 		}
@@ -153,6 +173,8 @@ public final class Batch {
 
 				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
+//				Stream.builder().
+				
 				this.inputData.stream().map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
 					long count = 0;
@@ -186,7 +208,7 @@ public final class Batch {
 			Instant after = Instant.now();
 			Duration duration = Duration.between(before, after);
 			summary.setDuration(duration);
-			
+
 			return summary;
 		}
 	}

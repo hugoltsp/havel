@@ -22,11 +22,8 @@ public class BulkUpdateTests extends HavelTests {
 
 		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withBulkSize(500)
 				.withConnectionConfig(DefaultConnectionConfigs.BEGIN_COMMIT_TRANSACTION)
-				.withInput("INSERT INTO user (name, email) VALUES (?, ?)", createMockUsers(),
-						(t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail()))
-				.execute();
-
-		System.out.println(summary);
+				.withSqlStatement("INSERT INTO user (name, email) VALUES (?, ?)").addData(createMockUsers())
+				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 		Assert.assertEquals(expectedUpdateCount, summary.getUpdateCount());
 	}
