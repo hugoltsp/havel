@@ -18,8 +18,8 @@ public class BulkSelectTests extends HavelTests {
 	@Test
 	public void testSelectUsers() throws Exception {
 
-		Stream<User> select = Batch.<User> bulkSelect().withConnection(connection).withInput(new SqlInput("select * from user"))
-				.withOutputMapper(new OutputMapper<User>() {
+		Stream<User> select = Batch.<User> bulkSelect().withConnection(connection)
+				.withSqlInput(new SqlInput("select * from user")).withOutputMapper(new OutputMapper<User>() {
 
 					@Override
 					public User getData(ResultSet result) {

@@ -1,6 +1,6 @@
 package com.havel.data.input;
 
-public interface Input {
+public interface Input<T> {
 
-	String getStatement();
+	T getStatement();
 }

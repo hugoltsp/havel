@@ -11,9 +11,9 @@ import com.havel.tests.util.UserEntity;
 public class OutputTests extends HavelTests {
 
 	@Test
-	public void jpaOutputMapperTest() throws Exception {
+	public void testJpaOutputMapper() throws Exception {
 		UserEntity userEntity = Batch.<UserEntity> bulkSelect().withConnection(connection)
-				.withInput(new SqlInput("select * from user where id=1"))
+				.withSqlInput(new SqlInput("select * from user limit 1"))
 				.withOutputMapper(new JpaOutputMapper<UserEntity>(UserEntity.class)).select().findAny().get();
 
 		Assert.assertTrue(userEntity != null);

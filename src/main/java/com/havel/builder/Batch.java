@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Spliterator;
@@ -15,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.havel.data.input.Input;
+import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.ConnectionConfig;
@@ -41,7 +44,7 @@ public final class Batch {
 
 		private ConnectionConfig connectionConfig;
 		private Connection connection;
-		private Input input;
+		private SqlInput input;
 		private PreparedStatement preparedStatement;
 
 		private void withConnectionConfig(ConnectionConfig connectionConfig) {
@@ -52,11 +55,11 @@ public final class Batch {
 			this.connection = datastore;
 		}
 
-		private void withInput(Input input) {
+		private void withSqlInput(SqlInput input) {
 			this.input = input;
 		}
 
-		private Input getInput() {
+		private SqlInput getInput() {
 			return input;
 		}
 
@@ -98,7 +101,7 @@ public final class Batch {
 		private Builder basicBuilder;
 		private long bulkSize = DEFAULT_BULK_SIZE;
 		private String sqlStatement;
-		private T[] parameters;
+		private List<T> inputData;
 		private StatementMapperFunction<T> statementMapperFunction;
 
 		public BulkUpdateBuilder() {
@@ -124,21 +127,23 @@ public final class Batch {
 			return bulkSize;
 		}
 
-		public BulkUpdateBuilder<T> withInput(Input input) {
-			this.basicBuilder.withInput(input);
+		public BulkUpdateBuilder<T> withSqlInput(SqlInput input) {
+			this.basicBuilder.withSqlInput(input);
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> withInput(String sqlStatement, T[] parameters,
+		public BulkUpdateBuilder<T> withInput(String sqlStatement, List<T> inputData,
 				StatementMapperFunction<T> statementMapperFunction) {
 			this.sqlStatement = sqlStatement;
-			this.parameters = parameters;
+			this.inputData = inputData;
 			this.statementMapperFunction = statementMapperFunction;
 			return this;
 		}
 
 		public BatchUpdateSummary execute() throws HavelException {
 			BatchUpdateSummary summary = new BatchUpdateSummary();
+
+			Instant before = Instant.now();
 
 			try (Builder builder = this.basicBuilder) {
 
@@ -148,7 +153,7 @@ public final class Batch {
 
 				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
-				Stream.of(parameters).map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
+				this.inputData.stream().map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
 					long count = 0;
 
@@ -178,6 +183,10 @@ public final class Batch {
 				throw new HavelException(e);
 			}
 
+			Instant after = Instant.now();
+			Duration duration = Duration.between(before, after);
+			summary.setDuration(duration);
+			
 			return summary;
 		}
 	}
@@ -196,8 +205,8 @@ public final class Batch {
 			return this;
 		}
 
-		public BulkSelectBuilder<O> withInput(Input input) {
-			this.basicBuilder.withInput(input);
+		public BulkSelectBuilder<O> withSqlInput(SqlInput input) {
+			this.basicBuilder.withSqlInput(input);
 			return this;
 		}
 

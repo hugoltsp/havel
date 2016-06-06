@@ -1,11 +1,13 @@
 package com.havel.data.utils;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 public class BatchUpdateSummary {
 
 	private long updateCount;
 	private long[] generatedIds;
+	private Duration duration;
 
 	public long getUpdateCount() {
 		return updateCount;
@@ -27,9 +29,27 @@ public class BatchUpdateSummary {
 		this.generatedIds = generatedIds;
 	}
 
+	public long getSeconds() {
+		return duration.getSeconds();
+	}
+
+	public long getHours() {
+		return duration.toHours();
+	}
+
+	public long getMinutes() {
+		return duration.toMinutes();
+	}
+
+	public void setDuration(Duration duration) {
+		this.duration = duration;
+	}
+
 	@Override
 	public String toString() {
-		return "BatchSummary [updateCount=" + updateCount + ", generatedIds=" + Arrays.toString(generatedIds) + "]";
+		return "BatchUpdateSummary [getUpdateCount()=" + getUpdateCount() + ", getGeneratedIds()="
+				+ Arrays.toString(getGeneratedIds()) + ", getSeconds()=" + getSeconds() + ", getHours()=" + getHours()
+				+ ", getMinutes()=" + getMinutes() + "]";
 	}
 
 }
