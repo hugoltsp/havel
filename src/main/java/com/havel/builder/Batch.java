@@ -11,15 +11,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.havel.data.input.InputSupplier;
 import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
@@ -105,8 +106,8 @@ public final class Batch {
 		private String sqlStatement;
 		private List<T> inputData = new ArrayList<>(0);
 		private StatementMapperFunction<T> statementMapperFunction;
-		private InputSupplier<T> inputSupplier;
-		
+		private Supplier<T> inputSupplier;
+
 		public BulkUpdateBuilder() {
 			this.basicBuilder = new Builder();
 		}
@@ -130,11 +131,11 @@ public final class Batch {
 			return bulkSize;
 		}
 
-		public BulkUpdateBuilder<T> withInputSupplier(InputSupplier<T> inputSupplier){
+		public BulkUpdateBuilder<T> withInputSupplier(Supplier<T> inputSupplier) {
 			this.inputSupplier = inputSupplier;
 			return this;
 		}
-		
+
 		public BulkUpdateBuilder<T> withSqlInput(SqlInput input) {
 			this.basicBuilder.withSqlInput(input);
 			return this;
@@ -173,30 +174,30 @@ public final class Batch {
 
 				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
-//				Stream.builder().
-				
-				this.inputData.stream().map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
+				Stream.concat(this.inputData.stream(),
+						this.inputSupplier == null ? Stream.empty() : Stream.generate(this.inputSupplier).filter(Objects::nonNull))
+						.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
-					long count = 0;
+							long count = 0;
 
-					try {
+							try {
 
-						for (Entry<Integer, Object> param : s.getParams().entrySet()) {
-							builder.preparedStatement.setObject(param.getKey(), param.getValue());
-						}
+								for (Entry<Integer, Object> param : s.getParams().entrySet()) {
+									builder.preparedStatement.setObject(param.getKey(), param.getValue());
+								}
 
-						builder.preparedStatement.addBatch();
+								builder.preparedStatement.addBatch();
 
-						if ((++count % bulkSize) == 0) {
-							summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
-							builder.preparedStatement.clearBatch();
-						}
+								if ((++count % bulkSize) == 0) {
+									summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
+									builder.preparedStatement.clearBatch();
+								}
 
-					} catch (SQLException e) {
-						throw new HavelException(e);
-					}
+							} catch (SQLException e) {
+								throw new HavelException(e);
+							}
 
-				});
+						});
 
 				summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
 				builder.preparedStatement.clearBatch();

@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import com.havel.exception.HavelException;
 
 public enum DefaultConnectionConfigs implements ConnectionConfig {
-	BEGIN_COMMIT_TRANSACTION {
+	TRANSACTIONAL {
 
 		@Override
 		public void onBefore(Connection connection) throws HavelException{
