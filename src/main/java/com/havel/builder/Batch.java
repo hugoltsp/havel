@@ -17,10 +17,10 @@ import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.havel.data.input.InputSupplier;
 import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
@@ -106,7 +106,7 @@ public final class Batch {
 		private String sqlStatement;
 		private List<T> inputData = new ArrayList<>(0);
 		private StatementMapperFunction<T> statementMapperFunction;
-		private Supplier<T> inputSupplier;
+		private InputSupplier<T> inputSupplier;
 
 		public BulkUpdateBuilder() {
 			this.basicBuilder = new Builder();
@@ -131,7 +131,7 @@ public final class Batch {
 			return bulkSize;
 		}
 
-		public BulkUpdateBuilder<T> withInputSupplier(Supplier<T> inputSupplier) {
+		public BulkUpdateBuilder<T> withInputSupplier(InputSupplier<T> inputSupplier) {
 			this.inputSupplier = inputSupplier;
 			return this;
 		}
@@ -161,6 +161,22 @@ public final class Batch {
 			return this;
 		}
 
+		private static <T> Spliterator<T> takeWhile(InputSupplier<T> inputSupplier) {
+			return new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.CONCURRENT) {
+
+				@Override
+				public boolean tryAdvance(Consumer<? super T> action) {
+					if (inputSupplier.isFinished()) {
+						return false;
+					} else {
+						action.accept(inputSupplier.get());
+						return true;
+					}
+				}
+
+			};
+		}
+
 		public BatchUpdateSummary execute() throws HavelException {
 			BatchUpdateSummary summary = new BatchUpdateSummary();
 
@@ -175,7 +191,8 @@ public final class Batch {
 				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
 				Stream.concat(this.inputData.stream(),
-						this.inputSupplier == null ? Stream.empty() : Stream.generate(this.inputSupplier).filter(Objects::nonNull))
+						this.inputSupplier == null ? Stream.empty()
+								: StreamSupport.stream(BulkUpdateBuilder.<T> takeWhile(inputSupplier), false)).filter(Objects::nonNull)
 						.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
 							long count = 0;

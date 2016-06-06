@@ -3,7 +3,6 @@ package com.havel.tests;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -11,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.havel.builder.Batch;
+import com.havel.data.input.InputSupplier;
 import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.DefaultConnectionConfigs;
 import com.havel.tests.util.User;
@@ -35,9 +35,10 @@ public class BulkUpdateTests extends HavelTests {
 	public void testBulkUpdateSupplier() throws Exception {
 		Batch.<User> bulkUpdate().withConnection(connection)
 				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL)
-				.withInputSupplier(new Supplier<User>() {
+				.withInputSupplier(new InputSupplier<User>() {
 
 					private int i;
+					private boolean b;
 
 					@Override
 					public User get() {
@@ -47,10 +48,23 @@ public class BulkUpdateTests extends HavelTests {
 							user = new User();
 							user.setEmail(UUID.randomUUID().toString());
 							user.setName(UUID.randomUUID().toString());
+						} else {
+							finish();
 						}
 
 						return user;
 					}
+
+					@Override
+					public boolean isFinished() {
+						return b;
+					}
+
+					@Override
+					public void finish() {
+						b = true;
+					}
+					
 				}).withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 	}
