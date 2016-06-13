@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
+import com.havel.data.utils.BatchUpdateSummary.UpdateCounter;
 import com.havel.data.utils.config.ConnectionConfig;
 import com.havel.exception.HavelException;
 
@@ -161,9 +162,9 @@ public final class Batch {
 		}
 
 		public BatchUpdateSummary execute() throws HavelException {
-			BatchUpdateSummary summary = new BatchUpdateSummary();
 
 			Instant before = Instant.now();
+			UpdateCounter updateCount = new UpdateCounter();
 
 			try (Builder builder = this.basicBuilder) {
 
@@ -187,7 +188,7 @@ public final class Batch {
 								builder.preparedStatement.addBatch();
 
 								if ((++count % bulkSize) == 0) {
-									summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
+									updateCount.sum(builder.preparedStatement.executeLargeBatch().length);
 									builder.preparedStatement.clearBatch();
 								}
 
@@ -197,7 +198,7 @@ public final class Batch {
 
 						});
 
-				summary.sumUpdateCount(builder.preparedStatement.executeLargeBatch().length);
+				updateCount.sum(builder.preparedStatement.executeLargeBatch().length);
 				builder.preparedStatement.clearBatch();
 
 			} catch (SQLException e) {
@@ -206,7 +207,8 @@ public final class Batch {
 
 			Instant after = Instant.now();
 			Duration duration = Duration.between(before, after);
-			summary.setDuration(duration);
+
+			BatchUpdateSummary summary = new BatchUpdateSummary(updateCount, duration);
 
 			return summary;
 		}

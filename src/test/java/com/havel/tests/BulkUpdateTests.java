@@ -33,7 +33,8 @@ public class BulkUpdateTests extends HavelTests {
 	@Test
 	public void testBulkUpdateSupplier() throws Exception {
 		Batch.<User> bulkUpdate().withConnection(connection)
-				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL).withDataStream(createMockUsers().stream())
+				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL)
+				.withDataStream(createMockUsers().stream())
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 	}
