@@ -10,7 +10,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.havel.builder.Batch;
-import com.havel.data.input.InputSupplier;
 import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.config.DefaultConnectionConfigs;
 import com.havel.tests.util.User;
@@ -25,7 +24,7 @@ public class BulkUpdateTests extends HavelTests {
 
 		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withBulkSize(500)
 				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL)
-				.addData(createMockUsers())
+				.withData(createMockUsers())
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 		Assert.assertEquals(expectedUpdateCount, summary.getUpdateCount());
@@ -34,38 +33,8 @@ public class BulkUpdateTests extends HavelTests {
 	@Test
 	public void testBulkUpdateSupplier() throws Exception {
 		Batch.<User> bulkUpdate().withConnection(connection)
-				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL)
-				.withInputSupplier(new InputSupplier<User>() {
-
-					private int i;
-					private boolean b;
-
-					@Override
-					public User get() {
-						User user = null;
-
-						if (i++ < 5) {
-							user = new User();
-							user.setEmail(UUID.randomUUID().toString());
-							user.setName(UUID.randomUUID().toString());
-						} else {
-							finish();
-						}
-
-						return user;
-					}
-
-					@Override
-					public boolean isFinished() {
-						return b;
-					}
-
-					@Override
-					public void finish() {
-						b = true;
-					}
-					
-				}).withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
+				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL).withDataStream(createMockUsers().stream())
+				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 	}
 

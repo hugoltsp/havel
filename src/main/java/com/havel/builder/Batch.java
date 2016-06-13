@@ -20,7 +20,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.havel.data.input.InputSupplier;
 import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
@@ -106,10 +105,15 @@ public final class Batch {
 		private String sqlStatement;
 		private List<T> inputData = new ArrayList<>(0);
 		private StatementMapperFunction<T> statementMapperFunction;
-		private InputSupplier<T> inputSupplier;
+		private Stream<T> input;
 
 		public BulkUpdateBuilder() {
 			this.basicBuilder = new Builder();
+		}
+
+		public BulkUpdateBuilder<T> withDataStream(Stream<T> input) {
+			this.input = input;
+			return this;
 		}
 
 		public BulkUpdateBuilder<T> withConnection(Connection connection) {
@@ -131,11 +135,6 @@ public final class Batch {
 			return bulkSize;
 		}
 
-		public BulkUpdateBuilder<T> withInputSupplier(InputSupplier<T> inputSupplier) {
-			this.inputSupplier = inputSupplier;
-			return this;
-		}
-
 		public BulkUpdateBuilder<T> withSqlInput(SqlInput input) {
 			this.basicBuilder.withSqlInput(input);
 			return this;
@@ -151,7 +150,7 @@ public final class Batch {
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> addData(List<T> data) {
+		public BulkUpdateBuilder<T> withData(List<T> data) {
 			this.inputData.addAll(data);
 			return this;
 		}
@@ -159,22 +158,6 @@ public final class Batch {
 		public BulkUpdateBuilder<T> withStatementMapper(StatementMapperFunction<T> statementMapperFunction) {
 			this.statementMapperFunction = statementMapperFunction;
 			return this;
-		}
-
-		private static <T> Spliterator<T> takeWhile(InputSupplier<T> inputSupplier) {
-			return new Spliterators.AbstractSpliterator<T>(Long.MAX_VALUE, Spliterator.CONCURRENT) {
-
-				@Override
-				public boolean tryAdvance(Consumer<? super T> action) {
-					if (inputSupplier.isFinished()) {
-						return false;
-					} else {
-						action.accept(inputSupplier.get());
-						return true;
-					}
-				}
-
-			};
 		}
 
 		public BatchUpdateSummary execute() throws HavelException {
@@ -190,9 +173,7 @@ public final class Batch {
 
 				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
-				Stream.concat(this.inputData.stream(),
-						this.inputSupplier == null ? Stream.empty()
-								: StreamSupport.stream(BulkUpdateBuilder.<T> takeWhile(inputSupplier), false)).filter(Objects::nonNull)
+				Stream.concat(this.inputData.stream(), this.input).filter(Objects::nonNull)
 						.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
 							long count = 0;
