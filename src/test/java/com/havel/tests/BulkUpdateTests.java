@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import com.havel.builder.Batch;
 import com.havel.data.utils.BatchUpdateSummary;
-import com.havel.data.utils.config.DefaultConnectionConfigs;
 import com.havel.tests.util.User;
 
 public class BulkUpdateTests extends HavelTests {
@@ -20,23 +19,15 @@ public class BulkUpdateTests extends HavelTests {
 
 	@Test
 	public void testBulkUpdate() throws Exception {
-		long expectedUpdateCount = 1_500;
+		long expectedUpdateCount = 1_500_000_000;
 
-		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withBulkSize(500)
-				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL)
-				.withData(createMockUsers())
-				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
-
-		Assert.assertEquals(expectedUpdateCount, summary.getUpdateCount());
-	}
-
-	@Test
-	public void testBulkUpdateSupplier() throws Exception {
-		Batch.<User> bulkUpdate().withConnection(connection)
-				.withConnectionConfig(DefaultConnectionConfigs.TRANSACTIONAL).withSqlStatement(SQL)
+		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withSqlStatement(SQL)
 				.withDataStream(createMockUsers().stream())
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
+		System.out.println(summary);
+		
+		Assert.assertEquals(expectedUpdateCount, summary.getUpdateCount());
 	}
 
 	private static List<User> createMockUsers() {
@@ -47,7 +38,7 @@ public class BulkUpdateTests extends HavelTests {
 			user.setEmail(UUID.randomUUID().toString());
 			user.setName(UUID.randomUUID().toString());
 			return user;
-		}).limit(1_500).collect(Collectors.toList()));
+		}).limit(1_500_000_000).collect(Collectors.toList()));
 
 		return users;
 	}

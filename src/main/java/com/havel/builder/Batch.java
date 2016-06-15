@@ -6,9 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -24,7 +22,6 @@ import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.BatchUpdateSummary.UpdateCounter;
-import com.havel.data.utils.config.ConnectionConfig;
 import com.havel.exception.HavelException;
 
 public final class Batch {
@@ -45,14 +42,9 @@ public final class Batch {
 
 	private static class Builder implements AutoCloseable {
 
-		private ConnectionConfig connectionConfig;
 		private Connection connection;
 		private SqlInput input;
 		private PreparedStatement preparedStatement;
-
-		private void withConnectionConfig(ConnectionConfig connectionConfig) {
-			this.connectionConfig = connectionConfig;
-		}
 
 		private void withConnection(Connection datastore) {
 			this.connection = datastore;
@@ -68,11 +60,8 @@ public final class Batch {
 
 		@Override
 		public void close() throws SQLException {
-			if (connectionConfig != null) {
-				connectionConfig.onAfter(connection);
-			}
-
 			this.preparedStatement.close();
+			this.connection.close();
 		}
 
 	}
@@ -104,7 +93,6 @@ public final class Batch {
 		private Builder basicBuilder;
 		private long bulkSize = DEFAULT_BULK_SIZE;
 		private String sqlStatement;
-		private List<T> inputData = new ArrayList<>(0);
 		private StatementMapperFunction<T> statementMapperFunction;
 		private Stream<T> input;
 
@@ -119,11 +107,6 @@ public final class Batch {
 
 		public BulkUpdateBuilder<T> withConnection(Connection connection) {
 			this.basicBuilder.withConnection(connection);
-			return this;
-		}
-
-		public BulkUpdateBuilder<T> withConnectionConfig(ConnectionConfig connectionConfig) {
-			this.basicBuilder.withConnectionConfig(connectionConfig);
 			return this;
 		}
 
@@ -146,16 +129,6 @@ public final class Batch {
 			return this;
 		}
 
-		public BulkUpdateBuilder<T> addData(T data) {
-			this.inputData.add(data);
-			return this;
-		}
-
-		public BulkUpdateBuilder<T> withData(List<T> data) {
-			this.inputData.addAll(data);
-			return this;
-		}
-
 		public BulkUpdateBuilder<T> withStatementMapper(StatementMapperFunction<T> statementMapperFunction) {
 			this.statementMapperFunction = statementMapperFunction;
 			return this;
@@ -167,15 +140,12 @@ public final class Batch {
 			UpdateCounter updateCount = new UpdateCounter();
 
 			try (Builder builder = this.basicBuilder) {
-
-				if (builder.connectionConfig != null) {
-					builder.connectionConfig.onBefore(builder.connection);
-				}
+				builder.connection.setAutoCommit(false);
 
 				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
-				Stream.concat(this.inputData.stream(), this.input).filter(Objects::nonNull)
-						.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
+				this.input.filter(Objects::nonNull).map(p -> statementMapperFunction.apply(new StatementMapper(), p))
+						.forEach(s -> {
 
 							long count = 0;
 
@@ -200,9 +170,18 @@ public final class Batch {
 
 				updateCount.sum(builder.preparedStatement.executeLargeBatch().length);
 				builder.preparedStatement.clearBatch();
+				builder.connection.commit();
 
-			} catch (SQLException e) {
-				throw new HavelException(e);
+			} catch (SQLException | HavelException e) {
+				HavelException exception = new HavelException(e);
+				
+				try {
+					this.basicBuilder.connection.rollback();
+				} catch (SQLException e1) {
+					e.addSuppressed(e1);
+				}
+				
+				throw exception;
 			}
 
 			Instant after = Instant.now();
@@ -238,11 +217,6 @@ public final class Batch {
 			return this;
 		}
 
-		public BulkSelectBuilder<O> withConnectionConfig(ConnectionConfig connectionConfig) {
-			this.basicBuilder.withConnectionConfig(connectionConfig);
-			return this;
-		}
-
 		public Stream<O> select() throws HavelException {
 			ResultSet resultSet = build();
 			return StreamSupport.stream(spliterator(resultSet), false).onClose(() -> {
@@ -272,10 +246,6 @@ public final class Batch {
 
 		private ResultSet build() throws HavelException {
 			try {
-				if (this.basicBuilder.connectionConfig != null) {
-					this.basicBuilder.connectionConfig.onBefore(this.basicBuilder.connection);
-				}
-
 				this.basicBuilder.preparedStatement = this.basicBuilder.connection
 						.prepareStatement(this.basicBuilder.getInput().getStatement());
 				ResultSet resultSet = this.basicBuilder.preparedStatement.executeQuery();
