@@ -153,8 +153,8 @@ public final class Batch {
 
 				builder.preparedStatement = builder.connection.prepareStatement(this.basicBuilder.getSqlStatement());
 
-				this.input.filter(Objects::nonNull).map(p -> statementMapperFunction.apply(new StatementMapper(), p))
-						.forEach(s -> {
+				this.input.filter(Objects::nonNull).sequential()
+						.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
 							long count = 0;
 
@@ -211,7 +211,7 @@ public final class Batch {
 		protected void checkState() throws IllegalStateException {
 			this.basicBuilder.checkState();
 			if (this.bulkSize < 1) {
-				throw new IllegalStateException("Invalid BulkSize of " + this.basicBuilder);
+				throw new IllegalStateException("Invalid BulkSize of " + this.bulkSize);
 			}
 
 			if (this.input == null) {
@@ -273,8 +273,9 @@ public final class Batch {
 				@Override
 				public boolean tryAdvance(Consumer<? super O> action) {
 					try {
-						if (!resultSet.next())
+						if (!resultSet.next()) {
 							return false;
+						}
 						action.accept(outputMapper.getData(resultSet));
 						return true;
 					} catch (SQLException ex) {

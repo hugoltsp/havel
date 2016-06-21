@@ -22,11 +22,11 @@ public class BulkUpdateTests extends HavelTests {
 		long expectedUpdateCount = 1_500;
 
 		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withSqlStatement(SQL)
-				.withDataStream(createMockUsers().stream())
+				.withDataStream(createMockUsers().stream()).withBulkSize(500)
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 		System.out.println(summary);
-		
+
 		Assert.assertEquals(expectedUpdateCount, summary.getUpdateCount());
 	}
 
@@ -38,7 +38,7 @@ public class BulkUpdateTests extends HavelTests {
 			user.setEmail(UUID.randomUUID().toString());
 			user.setName(UUID.randomUUID().toString());
 			return user;
-		}).limit(500_000).collect(Collectors.toList()));
+		}).limit(1_500).collect(Collectors.toList()));
 
 		return users;
 	}
