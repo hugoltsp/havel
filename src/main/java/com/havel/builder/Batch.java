@@ -18,7 +18,6 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.data.utils.BatchUpdateSummary;
 import com.havel.data.utils.BatchUpdateSummary.UpdateCounter;
@@ -43,19 +42,19 @@ public final class Batch {
 	private static class Builder implements AutoCloseable {
 
 		private Connection connection;
-		private SqlInput input;
+		private String sqlStatement;
 		private PreparedStatement preparedStatement;
 
 		private void withConnection(Connection datastore) {
 			this.connection = datastore;
 		}
 
-		private void withSqlInput(SqlInput input) {
-			this.input = input;
+		private void withSqlStatement(String sql) {
+			this.sqlStatement = sql;
 		}
 
-		private SqlInput getInput() {
-			return input;
+		private String getSqlStatement() {
+			return this.sqlStatement;
 		}
 
 		@Override
@@ -92,7 +91,6 @@ public final class Batch {
 
 		private Builder basicBuilder;
 		private long bulkSize = DEFAULT_BULK_SIZE;
-		private String sqlStatement;
 		private StatementMapperFunction<T> statementMapperFunction;
 		private Stream<T> input;
 
@@ -119,13 +117,8 @@ public final class Batch {
 			return bulkSize;
 		}
 
-		public BulkUpdateBuilder<T> withSqlInput(SqlInput input) {
-			this.basicBuilder.withSqlInput(input);
-			return this;
-		}
-
 		public BulkUpdateBuilder<T> withSqlStatement(String sqlStatement) {
-			this.sqlStatement = sqlStatement;
+			this.basicBuilder.withSqlStatement(sqlStatement);
 			return this;
 		}
 
@@ -142,7 +135,7 @@ public final class Batch {
 			try (Builder builder = this.basicBuilder) {
 				builder.connection.setAutoCommit(false);
 
-				builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
+				builder.preparedStatement = builder.connection.prepareStatement(this.basicBuilder.getSqlStatement());
 
 				this.input.filter(Objects::nonNull).map(p -> statementMapperFunction.apply(new StatementMapper(), p))
 						.forEach(s -> {
@@ -174,13 +167,13 @@ public final class Batch {
 
 			} catch (SQLException | HavelException e) {
 				HavelException exception = new HavelException(e);
-				
+
 				try {
 					this.basicBuilder.connection.rollback();
 				} catch (SQLException e1) {
 					e.addSuppressed(e1);
 				}
-				
+
 				throw exception;
 			}
 
@@ -207,8 +200,8 @@ public final class Batch {
 			return this;
 		}
 
-		public BulkSelectBuilder<O> withSqlInput(SqlInput input) {
-			this.basicBuilder.withSqlInput(input);
+		public BulkSelectBuilder<O> withSqlStatement(String sql) {
+			this.basicBuilder.withSqlStatement(sql);
 			return this;
 		}
 
@@ -247,7 +240,7 @@ public final class Batch {
 		private ResultSet build() throws HavelException {
 			try {
 				this.basicBuilder.preparedStatement = this.basicBuilder.connection
-						.prepareStatement(this.basicBuilder.getInput().getStatement());
+						.prepareStatement(this.basicBuilder.getSqlStatement());
 				ResultSet resultSet = this.basicBuilder.preparedStatement.executeQuery();
 				return resultSet;
 			} catch (SQLException e) {

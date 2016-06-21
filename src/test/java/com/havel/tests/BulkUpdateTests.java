@@ -19,7 +19,7 @@ public class BulkUpdateTests extends HavelTests {
 
 	@Test
 	public void testBulkUpdate() throws Exception {
-		long expectedUpdateCount = 1_500_000_000;
+		long expectedUpdateCount = 1_500;
 
 		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withSqlStatement(SQL)
 				.withDataStream(createMockUsers().stream())
@@ -38,7 +38,7 @@ public class BulkUpdateTests extends HavelTests {
 			user.setEmail(UUID.randomUUID().toString());
 			user.setName(UUID.randomUUID().toString());
 			return user;
-		}).limit(1_500_000_000).collect(Collectors.toList()));
+		}).limit(1_500).collect(Collectors.toList()));
 
 		return users;
 	}

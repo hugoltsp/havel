@@ -8,7 +8,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.havel.builder.Batch;
-import com.havel.data.input.SqlInput;
 import com.havel.data.output.OutputMapper;
 import com.havel.exception.HavelException;
 import com.havel.tests.util.User;
@@ -19,7 +18,7 @@ public class BulkSelectTests extends HavelTests {
 	public void testSelectUsers() throws Exception {
 
 		Stream<User> select = Batch.<User> bulkSelect().withConnection(connection)
-				.withSqlInput(new SqlInput("select * from user limit 1")).withOutputMapper(new OutputMapper<User>() {
+				.withSqlStatement("select * from user limit 1").withOutputMapper(new OutputMapper<User>() {
 
 					@Override
 					public User getData(ResultSet result) {
