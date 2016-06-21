@@ -63,9 +63,22 @@ public final class Batch {
 			this.connection.close();
 		}
 
+		protected void checkState() throws IllegalStateException {
+			try {
+				if (this.connection == null || connection.isClosed()) {
+					throw new IllegalStateException("Connection can't be null or closed");
+				}
+
+				if (sqlStatement == null || "".equals(sqlStatement)) {
+					throw new IllegalStateException("Invalid SqlStatement");
+				}
+			} catch (SQLException e) {
+				throw new IllegalStateException("Connection can't be null or closed", e);
+			}
+		}
 	}
 
-	public static class BulkUpdateBuilder<T> {
+	public static class BulkUpdateBuilder<T> extends Builder {
 
 		public static class StatementMapper {
 
@@ -127,8 +140,8 @@ public final class Batch {
 			return this;
 		}
 
-		public BatchUpdateSummary execute() throws HavelException {
-
+		public BatchUpdateSummary execute() throws HavelException, IllegalStateException {
+			this.checkState();
 			Instant before = Instant.now();
 			UpdateCounter updateCount = new UpdateCounter();
 
@@ -184,9 +197,27 @@ public final class Batch {
 
 			return summary;
 		}
+
+		@Override
+		protected void checkState() throws IllegalStateException {
+			this.basicBuilder.checkState();
+			if (this.bulkSize < 1) {
+				throw new IllegalStateException("Invalid BulkSize of " + this.basicBuilder);
+			}
+
+			if (this.input == null) {
+				throw new IllegalStateException("A data input Stream must be present");
+			}
+
+			if (this.statementMapperFunction == null) {
+				throw new IllegalStateException("StatementMApperFunction is null");
+			}
+			
+		}
+
 	}
 
-	public static class BulkSelectBuilder<O> {
+	public static class BulkSelectBuilder<O> extends Builder {
 
 		private Builder basicBuilder;
 		private OutputMapper<O> outputMapper;
@@ -210,7 +241,8 @@ public final class Batch {
 			return this;
 		}
 
-		public Stream<O> select() throws HavelException {
+		public Stream<O> select() throws HavelException, IllegalStateException {
+			this.checkState();
 			ResultSet resultSet = build();
 			return StreamSupport.stream(spliterator(resultSet), false).onClose(() -> {
 				try {
@@ -235,6 +267,14 @@ public final class Batch {
 					}
 				}
 			};
+		}
+
+		@Override
+		protected void checkState() throws IllegalStateException {
+			this.basicBuilder.checkState();
+			if (outputMapper == null) {
+				throw new IllegalStateException("OutputMapper can't be null");
+			}
 		}
 
 		private ResultSet build() throws HavelException {
