@@ -38,7 +38,7 @@ public class BulkUpdateTests extends HavelTests {
 			user.setEmail(UUID.randomUUID().toString());
 			user.setName(UUID.randomUUID().toString());
 			return user;
-		}).limit(1_500).collect(Collectors.toList()));
+		}).limit(500_000).collect(Collectors.toList()));
 
 		return users;
 	}

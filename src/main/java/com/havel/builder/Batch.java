@@ -13,6 +13,9 @@ import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -198,6 +201,12 @@ public final class Batch {
 			return summary;
 		}
 
+		public Future<BatchUpdateSummary> executeAsync() throws HavelException, IllegalStateException {
+			ExecutorService executorService = Executors.newSingleThreadExecutor();
+			Future<BatchUpdateSummary> future = executorService.submit(() -> execute());
+			return future;
+		}
+
 		@Override
 		protected void checkState() throws IllegalStateException {
 			this.basicBuilder.checkState();
@@ -212,7 +221,7 @@ public final class Batch {
 			if (this.statementMapperFunction == null) {
 				throw new IllegalStateException("StatementMApperFunction is null");
 			}
-			
+
 		}
 
 	}
@@ -251,6 +260,12 @@ public final class Batch {
 					throw new HavelException(e);
 				}
 			});
+		}
+
+		public Future<Stream<O>> selectAsync() throws HavelException, IllegalStateException {
+			ExecutorService executorService = Executors.newSingleThreadExecutor();
+			Future<Stream<O>> future = executorService.submit(() -> select());
+			return future;
 		}
 
 		private AbstractSpliterator<O> spliterator(ResultSet resultSet) {
