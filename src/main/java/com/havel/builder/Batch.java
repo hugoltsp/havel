@@ -204,6 +204,7 @@ public final class Batch {
 		public Future<BatchUpdateSummary> executeAsync() throws HavelException, IllegalStateException {
 			ExecutorService executorService = Executors.newSingleThreadExecutor();
 			Future<BatchUpdateSummary> future = executorService.submit(() -> execute());
+			executorService.shutdown();
 			return future;
 		}
 
@@ -265,6 +266,7 @@ public final class Batch {
 		public Future<Stream<O>> selectAsync() throws HavelException, IllegalStateException {
 			ExecutorService executorService = Executors.newSingleThreadExecutor();
 			Future<Stream<O>> future = executorService.submit(() -> select());
+			executorService.shutdown();
 			return future;
 		}
 
