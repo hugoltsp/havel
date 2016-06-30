@@ -9,8 +9,8 @@ public final class Batch {
 
 	}
 
-	public static <O> BulkSelectBuilder<O> bulkSelect() {
-		BulkSelectBuilder<O> builder = new BulkSelectBuilder<>();
+	public static <T> BulkSelectBuilder<T> bulkSelect() {
+		BulkSelectBuilder<T> builder = new BulkSelectBuilder<>();
 		return builder;
 	}
 
