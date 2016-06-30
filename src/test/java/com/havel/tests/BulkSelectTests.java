@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.havel.builder.Batch;
+import com.havel.batch.Batch;
 import com.havel.data.output.OutputMapper;
 import com.havel.exception.HavelException;
 import com.havel.tests.util.User;

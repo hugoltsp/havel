@@ -3,7 +3,7 @@ package com.havel.tests;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.havel.builder.Batch;
+import com.havel.batch.Batch;
 import com.havel.data.output.JpaOutputMapper;
 import com.havel.tests.util.UserEntity;
 

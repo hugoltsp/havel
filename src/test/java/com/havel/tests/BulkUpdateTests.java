@@ -9,8 +9,8 @@ import java.util.stream.Stream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.havel.builder.Batch;
-import com.havel.data.utils.BatchUpdateSummary;
+import com.havel.batch.Batch;
+import com.havel.builder.utils.BatchUpdateSummary;
 import com.havel.tests.util.User;
 
 public class BulkUpdateTests extends HavelTests {

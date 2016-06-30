@@ -1,4 +1,4 @@
-package com.havel.data.utils;
+package com.havel.builder.utils;
 
 import java.time.Duration;
 
@@ -8,7 +8,7 @@ public class BatchUpdateSummary {
 	private final Duration duration;
 
 	public BatchUpdateSummary(UpdateCounter updateCount, Duration duration) {
-		this.updateCount = updateCount.getCounter();
+		this.updateCount = updateCount.getCount();
 		this.duration = duration;
 	}
 
@@ -42,7 +42,11 @@ public class BatchUpdateSummary {
 			this.counter = value + this.counter;
 		}
 
-		public long getCounter() {
+		public long incrementAndGet() {
+			return ++this.counter;
+		}
+
+		public long getCount() {
 			return counter;
 		}
 
