@@ -96,7 +96,7 @@ public class BulkUpdateBuilder<T> extends Builder {
 							builder.preparedStatement.addBatch();
 
 							if ((counter.incrementAndGet() % bulkSize) == 0) {
-								builder.preparedStatement.executeLargeBatch();
+								builder.preparedStatement.executeBatch();
 								builder.preparedStatement.clearBatch();
 							}
 
@@ -106,7 +106,7 @@ public class BulkUpdateBuilder<T> extends Builder {
 
 					});
 
-			counter.sum(builder.preparedStatement.executeLargeBatch().length);
+			counter.sum(builder.preparedStatement.executeBatch().length);
 			builder.preparedStatement.clearBatch();
 			builder.connection.commit();
 		} catch (SQLException | HavelException e) {
