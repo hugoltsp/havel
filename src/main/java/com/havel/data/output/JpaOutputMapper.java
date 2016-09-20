@@ -1,11 +1,11 @@
 package com.havel.data.output;
 
 import java.lang.reflect.Field;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.persistence.Column;
 
+import com.havel.builder.BulkSelectBuilder.Row;
 import com.havel.exception.HavelException;
 
 public class JpaOutputMapper<O> implements OutputMapper<O> {
@@ -17,15 +17,15 @@ public class JpaOutputMapper<O> implements OutputMapper<O> {
 	}
 
 	@Override
-	public O getData(ResultSet result) throws HavelException {
+	public O getData(Row result) throws HavelException {
 		try {
-			return this.resultSetToJpaEntity(result);
+			return this.rowToJpaEntity(result);
 		} catch (InstantiationException | IllegalAccessException | SQLException e) {
 			throw new HavelException(e);
 		}
 	}
 
-	private O resultSetToJpaEntity(ResultSet rs) throws InstantiationException, IllegalAccessException, SQLException {
+	private O rowToJpaEntity(Row rs) throws InstantiationException, IllegalAccessException, SQLException {
 		O newInstance = this.entityType.newInstance();
 		Field[] fields = this.entityType.getDeclaredFields();
 
@@ -37,7 +37,7 @@ public class JpaOutputMapper<O> implements OutputMapper<O> {
 				if (!field.isAccessible()) {
 					field.setAccessible(true);
 				}
-				field.set(newInstance, rs.getObject(columnName, field.getType()));
+				field.set(newInstance, rs.getColumn(columnName, field.getType()));
 			}
 		}
 

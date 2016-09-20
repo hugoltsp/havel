@@ -1,15 +1,11 @@
 package com.havel.tests;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.havel.batch.Batch;
-import com.havel.data.output.OutputMapper;
-import com.havel.exception.HavelException;
 import com.havel.tests.util.User;
 
 public class BulkSelectTests extends HavelTests {
@@ -17,27 +13,18 @@ public class BulkSelectTests extends HavelTests {
 	@Test
 	public void testSelectUsers() throws Exception {
 
-		Stream<User> select = Batch.<User> bulkSelect().withConnection(connection)
-				.withSqlStatement("select * from user limit 1").withOutputMapper(new OutputMapper<User>() {
+		Stream<User> select = Batch.<User>bulkSelect().withConnection(connection)
+				.withSqlStatement("select * from user limit 1").withOutputMapper(result -> {
+					User user = null;
+					Long id = result.getColumn("id", Long.class);
+					String name = result.getColumn("name", String.class);
+					String email = result.getColumn("email", String.class);
 
-					@Override
-					public User getData(ResultSet result) {
-						User user = null;
-						try {
-							Long id = result.getLong("id");
-							String name = result.getString("name");
-							String email = result.getString("email");
-
-							user = new User();
-							user.setId(id);
-							user.setEmail(email);
-							user.setName(name);
-						} catch (SQLException e) {
-							throw new HavelException(e);
-						}
-
-						return user;
-					}
+					user = new User();
+					user.setId(id);
+					user.setEmail(email);
+					user.setName(name);
+					return user;
 				}).select();
 
 		Assert.assertTrue(select.findAny().isPresent());

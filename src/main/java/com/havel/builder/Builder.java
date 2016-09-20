@@ -26,7 +26,7 @@ public abstract class Builder implements AutoCloseable {
 				throw new IllegalStateException("Connection can't be null or closed");
 			}
 
-			if (sqlStatement == null || "".equals(sqlStatement)) {
+			if (this.sqlStatement == null || "".equals(sqlStatement)) {
 				throw new IllegalStateException("Invalid SqlStatement");
 			}
 		} catch (SQLException e) {

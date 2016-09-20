@@ -22,7 +22,7 @@ public class BulkUpdateTests extends HavelTests {
 		long expectedUpdateCount = 1_500;
 
 		BatchUpdateSummary summary = Batch.<User> bulkUpdate().withConnection(connection).withSqlStatement(SQL)
-				.withDataStream(createMockUsers().stream()).withBulkSize(500)
+				.withData(createMockUsers().stream()).withBulkSize(500)
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 
 		System.out.println(summary);

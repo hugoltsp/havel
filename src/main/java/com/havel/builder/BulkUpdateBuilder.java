@@ -22,11 +22,11 @@ public class BulkUpdateBuilder<T> extends Builder {
 
 	public static class StatementMapper {
 
-		private Map<Integer, Object> params = new HashMap<>();
+		private final Map<Integer, Object> params = new HashMap<>();
 		private int position;
 
 		private Map<Integer, Object> getParams() {
-			return params;
+			return this.params;
 		}
 
 		public StatementMapper addParameter(Object value) {
@@ -44,10 +44,10 @@ public class BulkUpdateBuilder<T> extends Builder {
 
 	private long bulkSize = DEFAULT_BULK_SIZE;
 	private StatementMapperFunction<T> statementMapperFunction;
-	private Stream<T> input;
+	private Stream<T> data;
 
-	public BulkUpdateBuilder<T> withDataStream(Stream<T> input) {
-		this.input = input;
+	public BulkUpdateBuilder<T> withData(Stream<T> data) {
+		this.data = data;
 		return this;
 	}
 
@@ -84,7 +84,7 @@ public class BulkUpdateBuilder<T> extends Builder {
 			builder.connection.setAutoCommit(false);
 			builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
-			this.input.filter(Objects::nonNull).sequential()
+			this.data.filter(Objects::nonNull).sequential()
 					.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
 						try {
@@ -143,12 +143,12 @@ public class BulkUpdateBuilder<T> extends Builder {
 			throw new IllegalStateException("Invalid BulkSize of " + this.bulkSize);
 		}
 
-		if (this.input == null) {
+		if (this.data == null) {
 			throw new IllegalStateException("A data input Stream must be present");
 		}
 
 		if (this.statementMapperFunction == null) {
-			throw new IllegalStateException("StatementMApperFunction is null");
+			throw new IllegalStateException("StatementMapperFunction is null");
 		}
 
 	}
