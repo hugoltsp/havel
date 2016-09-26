@@ -13,6 +13,8 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.slf4j.Logger;
+
 import com.havel.data.output.OutputMapper;
 import com.havel.exception.HavelException;
 
@@ -32,6 +34,11 @@ public class BulkSelectBuilder<T> extends Builder {
 
 	public BulkSelectBuilder<T> withOutputMapper(OutputMapper<T> outputMapper) {
 		this.outputMapper = outputMapper;
+		return this;
+	}
+
+	public BulkSelectBuilder<T> withLogger(Logger logger) {
+		this.logger = logger;
 		return this;
 	}
 

@@ -4,22 +4,25 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.slf4j.Logger;
+
 public abstract class Builder implements AutoCloseable {
 
+	protected Logger logger;
 	protected Connection connection;
 	protected String sqlStatement;
 	protected PreparedStatement preparedStatement;
 
-	@Override
-	public void close() throws SQLException {
-		this.preparedStatement.close();
-		this.connection.close();
-	}
-
+	public abstract Builder withLogger(Logger logger);
+	
 	public abstract Builder withConnection(Connection connection);
 
 	public abstract Builder withSqlStatement(String sqlStatement);
 
+	protected boolean isLogEnabled(){
+		return !(this.logger == null);
+	}
+	
 	protected void checkState() throws IllegalStateException {
 		try {
 			if (this.connection == null || connection.isClosed()) {
@@ -33,4 +36,11 @@ public abstract class Builder implements AutoCloseable {
 			throw new IllegalStateException("Connection can't be null or closed", e);
 		}
 	}
+
+	@Override
+	public void close() throws SQLException {
+		this.preparedStatement.close();
+		this.connection.close();
+	}
+
 }

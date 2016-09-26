@@ -14,6 +14,8 @@ import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+
 import com.havel.builder.utils.BatchUpdateSummary;
 import com.havel.builder.utils.BatchUpdateSummary.UpdateCounter;
 import com.havel.exception.HavelException;
@@ -66,13 +68,18 @@ public class BulkUpdateBuilder<T> extends Builder {
 		return this;
 	}
 
-	public long getBulkSize() {
-		return bulkSize;
-	}
-
 	public BulkUpdateBuilder<T> withStatementMapper(StatementMapperFunction<T> statementMapperFunction) {
 		this.statementMapperFunction = statementMapperFunction;
 		return this;
+	}
+
+	public BulkUpdateBuilder<T> withLogger(Logger logger) {
+		this.logger = logger;
+		return this;
+	}
+
+	public long getBulkSize() {
+		return bulkSize;
 	}
 
 	public BatchUpdateSummary execute() throws HavelException, IllegalStateException {
