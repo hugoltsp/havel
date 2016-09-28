@@ -19,8 +19,10 @@ public abstract class Builder implements AutoCloseable {
 
 	public abstract Builder withSqlStatement(String sqlStatement);
 
-	protected boolean isLogEnabled(){
-		return !(this.logger == null);
+	protected void logIfAvailable(String log, Object...params){
+		if(this.logger != null){
+			this.logger.info(log, params);
+		}
 	}
 	
 	protected void checkState() throws IllegalStateException {

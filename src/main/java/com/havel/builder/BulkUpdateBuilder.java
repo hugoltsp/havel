@@ -91,6 +91,8 @@ public class BulkUpdateBuilder<T> extends Builder {
 			builder.connection.setAutoCommit(false);
 			builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
 
+			super.logIfAvailable("executing update...");
+
 			this.data.filter(Objects::nonNull).sequential()
 					.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
 
@@ -103,8 +105,9 @@ public class BulkUpdateBuilder<T> extends Builder {
 							builder.preparedStatement.addBatch();
 
 							if ((counter.incrementAndGet() % bulkSize) == 0) {
-								builder.preparedStatement.executeBatch();
+								int updateCount = builder.preparedStatement.executeBatch().length;
 								builder.preparedStatement.clearBatch();
+								super.logIfAvailable("{} rows updated.", updateCount);
 							}
 
 						} catch (SQLException e) {
@@ -113,8 +116,15 @@ public class BulkUpdateBuilder<T> extends Builder {
 
 					});
 
-			counter.sum(builder.preparedStatement.executeBatch().length);
+			int updateCount = builder.preparedStatement.executeBatch().length;
+			counter.sum(updateCount);
 			builder.preparedStatement.clearBatch();
+			
+			if (updateCount > 0) {
+				super.logIfAvailable("{} rows updated.", updateCount);
+			}
+
+			super.logIfAvailable("finished! commiting transaction.");
 			builder.connection.commit();
 		} catch (SQLException | HavelException e) {
 			HavelException exception = new HavelException(e);

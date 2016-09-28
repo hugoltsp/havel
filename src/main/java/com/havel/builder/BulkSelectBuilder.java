@@ -21,7 +21,8 @@ import com.havel.exception.HavelException;
 public class BulkSelectBuilder<T> extends Builder {
 
 	private OutputMapper<T> outputMapper;
-
+	private int rowCount;
+	
 	public BulkSelectBuilder<T> withConnection(Connection connection) {
 		this.connection = connection;
 		return this;
@@ -44,6 +45,7 @@ public class BulkSelectBuilder<T> extends Builder {
 
 	public Stream<T> select() throws HavelException, IllegalStateException {
 		this.checkState();
+		super.logIfAvailable("fetching rows from database...");
 		ResultSet resultSet = build();
 		return StreamSupport.stream(spliterator(resultSet), false).onClose(() -> {
 			try {
@@ -67,9 +69,11 @@ public class BulkSelectBuilder<T> extends Builder {
 			public boolean tryAdvance(Consumer<? super T> action) {
 				try {
 					if (!resultSet.next()) {
+						logIfAvailable("{} rows selected from database", rowCount);
 						return false;
 					}
 					action.accept(outputMapper.getData(new Row(resultSet)));
+					rowCount++;
 					return true;
 				} catch (SQLException ex) {
 					throw new HavelException(ex);
@@ -123,7 +127,7 @@ public class BulkSelectBuilder<T> extends Builder {
 		public <T> T getColumn(int number, Class<T> clazz) throws HavelException {
 
 			if (number < 1 || number > this.columnCount) {
-				throw new HavelException("Column number out of bounds:" + number);
+				throw new HavelException("Column number out of bounds: " + number);
 			}
 
 			T columnObject = null;
