@@ -14,6 +14,8 @@ import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+
 import com.havel.builder.utils.BatchUpdateSummary;
 import com.havel.builder.utils.BatchUpdateSummary.UpdateCounter;
 import com.havel.exception.HavelException;
@@ -66,13 +68,18 @@ public class BulkUpdateBuilder<T> extends Builder {
 		return this;
 	}
 
-	public long getBulkSize() {
-		return bulkSize;
-	}
-
 	public BulkUpdateBuilder<T> withStatementMapper(StatementMapperFunction<T> statementMapperFunction) {
 		this.statementMapperFunction = statementMapperFunction;
 		return this;
+	}
+
+	public BulkUpdateBuilder<T> withLogger(Logger logger) {
+		this.logger = logger;
+		return this;
+	}
+
+	public long getBulkSize() {
+		return bulkSize;
 	}
 
 	public BatchUpdateSummary execute() throws HavelException, IllegalStateException {
@@ -83,6 +90,8 @@ public class BulkUpdateBuilder<T> extends Builder {
 		try (Builder builder = this) {
 			builder.connection.setAutoCommit(false);
 			builder.preparedStatement = builder.connection.prepareStatement(this.sqlStatement);
+
+			super.logIfAvailable("executing update...");
 
 			this.data.filter(Objects::nonNull).sequential()
 					.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
@@ -96,8 +105,9 @@ public class BulkUpdateBuilder<T> extends Builder {
 							builder.preparedStatement.addBatch();
 
 							if ((counter.incrementAndGet() % bulkSize) == 0) {
-								builder.preparedStatement.executeBatch();
+								int updateCount = builder.preparedStatement.executeBatch().length;
 								builder.preparedStatement.clearBatch();
+								super.logIfAvailable("{} rows updated.", updateCount);
 							}
 
 						} catch (SQLException e) {
@@ -106,8 +116,15 @@ public class BulkUpdateBuilder<T> extends Builder {
 
 					});
 
-			counter.sum(builder.preparedStatement.executeBatch().length);
+			int updateCount = builder.preparedStatement.executeBatch().length;
+			counter.sum(updateCount);
 			builder.preparedStatement.clearBatch();
+			
+			if (updateCount > 0) {
+				super.logIfAvailable("{} rows updated.", updateCount);
+			}
+
+			super.logIfAvailable("finished! commiting transaction.");
 			builder.connection.commit();
 		} catch (SQLException | HavelException e) {
 			HavelException exception = new HavelException(e);
