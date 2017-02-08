@@ -1,11 +1,11 @@
-package com.havel.batch;
+package com.teles.havel.batch;
 
-import com.havel.builder.BulkSelectBuilder;
-import com.havel.builder.BulkUpdateBuilder;
+import com.teles.havel.builder.BulkSelectBuilder;
+import com.teles.havel.builder.BulkUpdateBuilder;
 
-public final class Batch {
+public final class Builders {
 
-	private Batch() {
+	private Builders() {
 
 	}
 

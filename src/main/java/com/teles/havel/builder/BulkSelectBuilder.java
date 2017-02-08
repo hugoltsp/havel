@@ -1,4 +1,4 @@
-package com.havel.builder;
+package com.teles.havel.builder;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -15,8 +15,8 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
-import com.havel.data.output.OutputMapper;
-import com.havel.exception.HavelException;
+import com.teles.havel.data.output.OutputMapper;
+import com.teles.havel.exception.HavelException;
 
 public class BulkSelectBuilder<T> extends Builder {
 

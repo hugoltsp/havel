@@ -1,4 +1,4 @@
-package com.havel.builder;
+package com.teles.havel.builder;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,9 +16,9 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 
-import com.havel.builder.utils.BatchUpdateSummary;
-import com.havel.builder.utils.BatchUpdateSummary.UpdateCounter;
-import com.havel.exception.HavelException;
+import com.teles.havel.builder.utils.BulkUpdateSummary;
+import com.teles.havel.builder.utils.BulkUpdateSummary.UpdateCounter;
+import com.teles.havel.exception.HavelException;
 
 public class BulkUpdateBuilder<T> extends Builder {
 
@@ -82,7 +82,7 @@ public class BulkUpdateBuilder<T> extends Builder {
 		return bulkSize;
 	}
 
-	public BatchUpdateSummary execute() throws HavelException, IllegalStateException {
+	public BulkUpdateSummary execute() throws HavelException, IllegalStateException {
 		this.checkState();
 		Instant before = Instant.now();
 		UpdateCounter counter = new UpdateCounter();
@@ -141,14 +141,14 @@ public class BulkUpdateBuilder<T> extends Builder {
 		Instant after = Instant.now();
 		Duration duration = Duration.between(before, after);
 
-		BatchUpdateSummary summary = new BatchUpdateSummary(counter, duration);
+		BulkUpdateSummary summary = new BulkUpdateSummary(counter, duration);
 
 		return summary;
 	}
 
-	public Future<BatchUpdateSummary> executeAsync() throws HavelException, IllegalStateException {
+	public Future<BulkUpdateSummary> executeAsync() throws HavelException, IllegalStateException {
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		Future<BatchUpdateSummary> future = executorService.submit(() -> execute());
+		Future<BulkUpdateSummary> future = executorService.submit(() -> execute());
 		executorService.shutdown();
 		return future;
 	}

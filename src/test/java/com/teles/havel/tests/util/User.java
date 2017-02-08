@@ -1,4 +1,4 @@
-package com.havel.tests.util;
+package com.teles.havel.tests.util;
 
 public class User {
 

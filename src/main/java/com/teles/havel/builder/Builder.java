@@ -1,4 +1,4 @@
-package com.havel.builder;
+package com.teles.havel.builder;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

@@ -1,13 +1,13 @@
-package com.havel.builder.utils;
+package com.teles.havel.builder.utils;
 
 import java.time.Duration;
 
-public class BatchUpdateSummary {
+public class BulkUpdateSummary {
 
 	private final long updateCount;
 	private final Duration duration;
 
-	public BatchUpdateSummary(UpdateCounter updateCount, Duration duration) {
+	public BulkUpdateSummary(UpdateCounter updateCount, Duration duration) {
 		this.updateCount = updateCount.getCount();
 		this.duration = duration;
 	}

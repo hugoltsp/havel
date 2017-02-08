@@ -1,4 +1,4 @@
-package com.havel.tests;
+package com.teles.havel.tests;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,9 +10,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import com.havel.batch.Batch;
-import com.havel.builder.utils.BatchUpdateSummary;
-import com.havel.tests.util.User;
+import com.teles.havel.batch.Builders;
+import com.teles.havel.builder.utils.BulkUpdateSummary;
+import com.teles.havel.tests.util.User;
 
 public class BulkUpdateTests extends HavelTests {
 
@@ -22,7 +22,7 @@ public class BulkUpdateTests extends HavelTests {
 	public void testBulkUpdate() throws Exception {
 		long expectedUpdateCount = 1_500;
 
-		BatchUpdateSummary summary = Batch.<User>bulkUpdate().withLogger(LoggerFactory.getLogger("Test"))
+		BulkUpdateSummary summary = Builders.<User>bulkUpdate().withLogger(LoggerFactory.getLogger("Test"))
 				.withConnection(connection).withSqlStatement(SQL).withData(createMockUsers().stream()).withBulkSize(500)
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).execute();
 

@@ -1,4 +1,4 @@
-package com.havel.tests;
+package com.teles.havel.tests;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
