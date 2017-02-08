@@ -15,7 +15,8 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.data.output.OutputMapper;
+import com.teles.havel.domain.output.Row;
+import com.teles.havel.domain.output.function.OutputMapper;
 import com.teles.havel.exception.HavelException;
 
 public class BulkSelectBuilder<T> extends Builder {
@@ -97,50 +98,6 @@ public class BulkSelectBuilder<T> extends Builder {
 			return resultSet;
 		} catch (SQLException e) {
 			throw new HavelException(e);
-		}
-	}
-
-	public static class Row {
-
-		private final int columnCount;
-		private final ResultSet resultSet;
-
-		public Row(ResultSet resultSet) throws SQLException {
-			this.resultSet = resultSet;
-			this.columnCount = resultSet.getMetaData().getColumnCount();
-		}
-
-		public <T> T getColumn(String name, Class<T> clazz) throws HavelException {
-			T columnObject = null;
-
-			try {
-
-				columnObject = this.resultSet.getObject(name, clazz);
-
-			} catch (SQLException e) {
-				throw new HavelException(e);
-			}
-
-			return columnObject;
-		}
-
-		public <T> T getColumn(int number, Class<T> clazz) throws HavelException {
-
-			if (number < 1 || number > this.columnCount) {
-				throw new HavelException("Column number out of bounds: " + number);
-			}
-
-			T columnObject = null;
-
-			try {
-
-				columnObject = this.resultSet.getObject(number, clazz);
-
-			} catch (SQLException e) {
-				throw new HavelException(e);
-			}
-
-			return columnObject;
 		}
 	}
 

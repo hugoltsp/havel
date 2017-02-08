@@ -4,43 +4,22 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.builder.utils.BulkUpdateSummary;
-import com.teles.havel.builder.utils.BulkUpdateSummary.UpdateCounter;
+import com.teles.havel.domain.input.StatementParameters;
+import com.teles.havel.domain.input.function.StatementMapperFunction;
+import com.teles.havel.domain.util.BulkUpdateSummary;
+import com.teles.havel.domain.util.BulkUpdateSummary.UpdateCounter;
 import com.teles.havel.exception.HavelException;
 
 public class BulkUpdateBuilder<T> extends Builder {
-
-	public static class StatementMapper {
-
-		private final Map<Integer, Object> params = new HashMap<>();
-		private int position;
-
-		private Map<Integer, Object> getParams() {
-			return this.params;
-		}
-
-		public StatementMapper addParameter(Object value) {
-			this.params.put(++position, value);
-			return this;
-		}
-
-	}
-
-	public static interface StatementMapperFunction<T> extends BiFunction<StatementMapper, T, StatementMapper> {
-
-	}
 
 	private static final long DEFAULT_BULK_SIZE = 100;
 
@@ -94,7 +73,7 @@ public class BulkUpdateBuilder<T> extends Builder {
 			super.logIfAvailable("executing update...");
 
 			this.data.filter(Objects::nonNull).sequential()
-					.map(p -> statementMapperFunction.apply(new StatementMapper(), p)).forEach(s -> {
+					.map(p -> statementMapperFunction.apply(new StatementParameters(), p)).forEach(s -> {
 
 						try {
 
