@@ -3,7 +3,7 @@ package com.teles.havel.domain.output;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.teles.havel.exception.HavelException;
+import com.teles.havel.domain.exception.HavelException;
 
 public class Row {
 
@@ -29,10 +29,10 @@ public class Row {
 		return columnObject;
 	}
 
-	public <T> T getColumn(int number, Class<T> clazz) throws HavelException {
+	public <T> T getColumn(int number, Class<T> clazz) throws HavelException, IllegalArgumentException {
 
 		if (number < 1 || number > this.columnCount) {
-			throw new HavelException("Column number out of bounds: " + number);
+			throw new IllegalArgumentException("Column number out of bounds: " + number);
 		}
 
 		T columnObject = null;

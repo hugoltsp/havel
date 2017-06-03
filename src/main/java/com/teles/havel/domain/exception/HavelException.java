@@ -1,8 +1,8 @@
-package com.teles.havel.exception;
+package com.teles.havel.domain.exception;
 
 public class HavelException extends RuntimeException {
 
-	private static final long serialVersionUID = 6167750803341902405L;
+	private static final long serialVersionUID = 1L;
 
 	public HavelException() {
 		super();

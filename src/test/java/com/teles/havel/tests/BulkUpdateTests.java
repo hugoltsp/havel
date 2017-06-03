@@ -10,8 +10,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import com.teles.havel.batch.Builders;
-import com.teles.havel.domain.util.BulkUpdateSummary;
+import com.teles.havel.builder.utils.Builders;
+import com.teles.havel.domain.update.util.BulkUpdateSummary;
 import com.teles.havel.tests.util.User;
 
 public class BulkUpdateTests extends HavelTests {

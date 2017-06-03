@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.teles.havel.batch.Builders;
+import com.teles.havel.builder.utils.Builders;
 import com.teles.havel.tests.util.User;
 
 public class BulkSelectTests extends HavelTests {

@@ -1,4 +1,4 @@
-package com.teles.havel.domain.util;
+package com.teles.havel.domain.update.util;
 
 import java.time.Duration;
 

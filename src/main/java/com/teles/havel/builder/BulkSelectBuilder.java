@@ -15,9 +15,9 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
+import com.teles.havel.domain.exception.HavelException;
 import com.teles.havel.domain.output.Row;
 import com.teles.havel.domain.output.function.OutputMapper;
-import com.teles.havel.exception.HavelException;
 
 public class BulkSelectBuilder<T> extends Builder {
 

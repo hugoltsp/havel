@@ -13,11 +13,11 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 
+import com.teles.havel.domain.exception.HavelException;
 import com.teles.havel.domain.input.StatementParameters;
 import com.teles.havel.domain.input.function.StatementMapperFunction;
-import com.teles.havel.domain.util.BulkUpdateSummary;
-import com.teles.havel.domain.util.BulkUpdateSummary.UpdateCounter;
-import com.teles.havel.exception.HavelException;
+import com.teles.havel.domain.update.util.BulkUpdateSummary;
+import com.teles.havel.domain.update.util.BulkUpdateSummary.UpdateCounter;
 
 public class BulkUpdateBuilder<T> extends Builder {
 

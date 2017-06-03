@@ -1,4 +1,4 @@
-package com.teles.havel.batch;
+package com.teles.havel.builder.utils;
 
 import com.teles.havel.builder.BulkSelectBuilder;
 import com.teles.havel.builder.BulkUpdateBuilder;
