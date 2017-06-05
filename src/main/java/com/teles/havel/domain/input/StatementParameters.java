@@ -13,13 +13,19 @@ public class StatementParameters {
 	}
 
 	public <T> StatementParameters addParameter(T value) {
+
 		if (value != null && value instanceof Enum<?>) {
 			int ordinal = ((Enum<?>) value).ordinal();
-			this.params.put(++position, ordinal);
+			put(ordinal);
 		} else {
-			this.params.put(++position, value);
+			put(value);
 		}
+
 		return this;
+	}
+
+	private <T> void put(T value) {
+		this.params.put(++position, value);
 	}
 
 }
