@@ -5,17 +5,28 @@ import java.sql.SQLException;
 
 import org.slf4j.Logger;
 
-public abstract class Builder {
+import com.teles.havel.domain.BulkOperation;
+
+public abstract class Builder<T extends Builder<T, O>, O extends BulkOperation> {
 
 	protected Logger logger;
 	protected Connection connection;
 	protected String sqlStatement;
 
-	public abstract Builder withConnection(Connection connection);
+	public T withConnection(Connection connection) {
+		this.connection = connection;
+		return getThis();
+	}
 
-	public abstract Builder withSqlStatement(String sqlStatement);
+	public T withSqlStatement(String sqlStatement) {
+		this.sqlStatement = sqlStatement;
+		return getThis();
+	}
 
-	public abstract Builder withLogger(Logger logger);
+	public T withLogger(Logger logger) {
+		this.logger = logger;
+		return getThis();
+	}
 
 	protected void logIfAvailable(String log, Object... params) {
 		if (this.logger != null) {
@@ -32,4 +43,8 @@ public abstract class Builder {
 			throw new IllegalStateException("Connection can't be null or closed", e);
 		}
 	}
+
+	public abstract O build();
+
+	protected abstract T getThis();
 }

@@ -1,7 +1,7 @@
 package com.teles.havel.builder.utils;
 
-import com.teles.havel.builder.BulkUpdateBuilder;
 import com.teles.havel.builder.select.BulkSelectBuilder;
+import com.teles.havel.builder.update.BulkUpdateBuilder;
 
 public final class Builders {
 
