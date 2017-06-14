@@ -1,4 +1,4 @@
-package com.teles.havel.domain.exception;
+package com.teles.havel.operation.exception;
 
 public class HavelException extends RuntimeException {
 

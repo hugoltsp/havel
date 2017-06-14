@@ -1,8 +1,8 @@
-package com.teles.havel.domain.input.function;
+package com.teles.havel.operation.update.function;
 
 import java.util.function.BiFunction;
 
-import com.teles.havel.domain.input.StatementParameters;
+import com.teles.havel.operation.update.utils.StatementParameters;
 
 @FunctionalInterface
 public interface StatementMapperFunction<T> extends BiFunction<StatementParameters, T, StatementParameters> {

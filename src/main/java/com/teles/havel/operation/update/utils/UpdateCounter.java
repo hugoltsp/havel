@@ -1,4 +1,4 @@
-package com.teles.havel.domain.update.util;
+package com.teles.havel.operation.update.utils;
 
 public class UpdateCounter {
 
