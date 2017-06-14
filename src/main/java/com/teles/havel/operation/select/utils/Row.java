@@ -1,9 +1,9 @@
-package com.teles.havel.domain.output;
+package com.teles.havel.operation.select.utils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.teles.havel.domain.exception.HavelException;
+import com.teles.havel.operation.exception.HavelException;
 
 public class Row {
 

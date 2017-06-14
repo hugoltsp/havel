@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.domain.BulkOperation;
+import com.teles.havel.operation.BulkOperation;
 
 public abstract class Builder<T extends Builder<T, O>, O extends BulkOperation> {
 

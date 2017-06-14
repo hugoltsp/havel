@@ -4,9 +4,9 @@ import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import com.teles.havel.builder.Builder;
-import com.teles.havel.domain.exception.HavelException;
-import com.teles.havel.domain.input.function.StatementMapperFunction;
-import com.teles.havel.domain.update.BulkUpdate;
+import com.teles.havel.operation.exception.HavelException;
+import com.teles.havel.operation.update.BulkUpdate;
+import com.teles.havel.operation.update.function.StatementMapperFunction;
 
 public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpdate<T>> {
 

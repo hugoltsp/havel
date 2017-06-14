@@ -1,4 +1,4 @@
-package com.teles.havel.domain.select;
+package com.teles.havel.operation.select;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,18 +16,18 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.domain.BulkOperation;
-import com.teles.havel.domain.exception.HavelException;
-import com.teles.havel.domain.output.Row;
-import com.teles.havel.domain.output.function.OutputMapper;
+import com.teles.havel.operation.BulkOperation;
+import com.teles.havel.operation.exception.HavelException;
+import com.teles.havel.operation.select.function.OutputMapperFunction;
+import com.teles.havel.operation.select.utils.Row;
 
 public class BulkSelect<T> extends BulkOperation {
 
-	private final OutputMapper<T> outputMapper;
+	private final OutputMapperFunction<T> outputMapper;
 	private int rowCount;
 
 	public BulkSelect(Logger logger, Connection connection, String sqlStatement, PreparedStatement preparedStatement,
-			OutputMapper<T> outputMapper) {
+			OutputMapperFunction<T> outputMapper) {
 		super(logger, connection, sqlStatement, preparedStatement);
 		this.outputMapper = outputMapper;
 	}
@@ -61,7 +61,7 @@ public class BulkSelect<T> extends BulkOperation {
 						logIfAvailable("{} rows selected from database", rowCount);
 						return false;
 					}
-					action.accept(outputMapper.getData(new Row(resultSet)));
+					action.accept(outputMapper.apply(new Row(resultSet)));
 					rowCount++;
 					return true;
 				} catch (SQLException ex) {

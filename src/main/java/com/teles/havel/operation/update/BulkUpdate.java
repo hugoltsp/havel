@@ -1,4 +1,4 @@
-package com.teles.havel.domain.update;
+package com.teles.havel.operation.update;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,12 +14,12 @@ import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.domain.BulkOperation;
-import com.teles.havel.domain.exception.HavelException;
-import com.teles.havel.domain.input.StatementParameters;
-import com.teles.havel.domain.input.function.StatementMapperFunction;
-import com.teles.havel.domain.update.util.BulkUpdateSummary;
-import com.teles.havel.domain.update.util.UpdateCounter;
+import com.teles.havel.operation.BulkOperation;
+import com.teles.havel.operation.exception.HavelException;
+import com.teles.havel.operation.update.function.StatementMapperFunction;
+import com.teles.havel.operation.update.utils.BulkUpdateSummary;
+import com.teles.havel.operation.update.utils.StatementParameters;
+import com.teles.havel.operation.update.utils.UpdateCounter;
 
 public class BulkUpdate<T> extends BulkOperation {
 

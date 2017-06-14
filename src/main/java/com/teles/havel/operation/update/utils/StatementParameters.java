@@ -1,4 +1,4 @@
-package com.teles.havel.domain.input;
+package com.teles.havel.operation.update.utils;
 
 import java.util.HashMap;
 import java.util.Map;

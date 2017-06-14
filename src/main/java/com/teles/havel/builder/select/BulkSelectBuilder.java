@@ -3,13 +3,13 @@ package com.teles.havel.builder.select;
 import java.sql.SQLException;
 
 import com.teles.havel.builder.Builder;
-import com.teles.havel.domain.exception.HavelException;
-import com.teles.havel.domain.output.function.OutputMapper;
-import com.teles.havel.domain.select.BulkSelect;
+import com.teles.havel.operation.exception.HavelException;
+import com.teles.havel.operation.select.BulkSelect;
+import com.teles.havel.operation.select.function.OutputMapperFunction;
 
 public class BulkSelectBuilder<T> extends Builder<BulkSelectBuilder<T>, BulkSelect<T>> {
 
-	private OutputMapper<T> outputMapper;
+	private OutputMapperFunction<T> outputMapper;
 
 	private BulkSelectBuilder() {
 	}
@@ -18,7 +18,7 @@ public class BulkSelectBuilder<T> extends Builder<BulkSelectBuilder<T>, BulkSele
 		return new BulkSelectBuilder<>();
 	}
 
-	public BulkSelectBuilder<T> withOutputMapper(OutputMapper<T> outputMapper) {
+	public BulkSelectBuilder<T> withOutputMapper(OutputMapperFunction<T> outputMapper) {
 		this.outputMapper = outputMapper;
 		return this;
 	}
