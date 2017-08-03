@@ -26,7 +26,6 @@ public class BulkSelectBuilder<T> extends Builder<BulkSelectBuilder<T>, BulkSele
 	public BulkSelect<T> build() throws HavelException, IllegalStateException {
 		BulkSelect<T> bulkSelect = null;
 		try {
-			checkConnection();
 			bulkSelect = new BulkSelect<>(logger, connection, sqlStatement,
 					this.connection.prepareStatement(sqlStatement), outputMapper);
 		} catch (SQLException e) {

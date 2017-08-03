@@ -7,9 +7,6 @@ import java.sql.SQLException;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.Spliterators.AbstractSpliterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -43,13 +40,6 @@ public class BulkSelect<T> extends BulkOperation {
 				throw new HavelException(e);
 			}
 		});
-	}
-
-	public Future<Stream<T>> selectAsync() throws HavelException, IllegalStateException {
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		Future<Stream<T>> future = executorService.submit(() -> select());
-		executorService.shutdown();
-		return future;
 	}
 
 	private AbstractSpliterator<T> spliterator(ResultSet resultSet) {

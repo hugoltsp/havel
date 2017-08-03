@@ -41,7 +41,6 @@ public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpda
 	public BulkUpdate<T> build() throws HavelException, IllegalStateException {
 		BulkUpdate<T> bulkUpdate = null;
 		try {
-			checkConnection();
 			bulkUpdate = new BulkUpdate<>(this.logger, this.connection, this.sqlStatement,
 					this.connection.prepareStatement(this.sqlStatement), this.bulkSize, this.statementMapperFunction,
 					this.data);

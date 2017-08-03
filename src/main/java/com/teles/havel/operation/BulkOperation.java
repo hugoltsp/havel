@@ -29,11 +29,11 @@ public abstract class BulkOperation implements AutoCloseable {
 
 	protected void checkState() throws IllegalStateException {
 		try {
-			if (this.connection == null || connection.isClosed()) {
+			if (this.connection == null || this.connection.isClosed()) {
 				throw new IllegalStateException("Connection can't be null or closed");
 			}
 
-			if (this.sqlStatement == null || "".equals(sqlStatement)) {
+			if (this.sqlStatement == null || "".equals(this.sqlStatement)) {
 				throw new IllegalStateException("Invalid SqlStatement");
 			}
 		} catch (SQLException e) {
