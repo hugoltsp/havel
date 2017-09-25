@@ -3,7 +3,7 @@ package com.teles.havel.operation.update.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StatementParameters {
+public final class StatementParameters {
 
 	private final Map<Integer, Object> params = new HashMap<>();
 	private int position;
@@ -13,14 +13,7 @@ public class StatementParameters {
 	}
 
 	public <T> StatementParameters addParameter(T value) {
-
-		if (value != null && value instanceof Enum<?>) {
-			int ordinal = ((Enum<?>) value).ordinal();
-			put(ordinal);
-		} else {
-			put(value);
-		}
-
+		this.put(value);
 		return this;
 	}
 
