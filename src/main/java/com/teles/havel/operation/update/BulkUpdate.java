@@ -3,13 +3,8 @@ package com.teles.havel.operation.update;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -19,7 +14,6 @@ import com.teles.havel.operation.exception.HavelException;
 import com.teles.havel.operation.update.function.StatementMapperFunction;
 import com.teles.havel.operation.update.utils.BulkUpdateSummary;
 import com.teles.havel.operation.update.utils.StatementParameters;
-import com.teles.havel.operation.update.utils.UpdateCounter;
 
 public class BulkUpdate<T> extends BulkOperation {
 
@@ -37,8 +31,7 @@ public class BulkUpdate<T> extends BulkOperation {
 
 	public BulkUpdateSummary execute() throws HavelException, IllegalStateException {
 		this.checkState();
-		Instant before = Instant.now();
-		UpdateCounter counter = new UpdateCounter();
+		BulkUpdateSummary bulkUpdateSummary = BulkUpdateSummary.start();
 
 		try (BulkOperation builder = this) {
 
@@ -57,7 +50,7 @@ public class BulkUpdate<T> extends BulkOperation {
 
 							this.preparedStatement.addBatch();
 
-							if ((counter.incrementAndGet() % this.bulkSize) == 0) {
+							if ((bulkUpdateSummary.incrementAndGet() % this.bulkSize) == 0) {
 								int updateCount = preparedStatement.executeBatch().length;
 								preparedStatement.clearBatch();
 								super.logIfAvailable("{} rows updated.", updateCount);
@@ -70,7 +63,7 @@ public class BulkUpdate<T> extends BulkOperation {
 					});
 
 			int updateCount = this.preparedStatement.executeBatch().length;
-			counter.sum(updateCount);
+			bulkUpdateSummary.sumUpdateCount(updateCount);
 			this.preparedStatement.clearBatch();
 
 			if (updateCount > 0) {
@@ -91,19 +84,8 @@ public class BulkUpdate<T> extends BulkOperation {
 			throw exception;
 		}
 
-		Instant after = Instant.now();
-		Duration duration = Duration.between(before, after);
-
-		BulkUpdateSummary summary = new BulkUpdateSummary(counter, duration);
-
-		return summary;
-	}
-
-	public Future<BulkUpdateSummary> executeAsync() throws HavelException, IllegalStateException {
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
-		Future<BulkUpdateSummary> future = executorService.submit(() -> execute());
-		executorService.shutdown();
-		return future;
+		bulkUpdateSummary.finish();
+		return bulkUpdateSummary;
 	}
 
 	protected void checkState() throws IllegalStateException {

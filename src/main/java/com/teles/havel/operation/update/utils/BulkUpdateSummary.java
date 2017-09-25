@@ -1,19 +1,25 @@
 package com.teles.havel.operation.update.utils;
 
 import java.time.Duration;
+import java.time.Instant;
 
-public class BulkUpdateSummary {
+public final class BulkUpdateSummary {
 
-	private final long updateCount;
-	private final Duration duration;
+	private int updateCount;
+	private Instant startTime;
+	private Duration duration;
 
-	public BulkUpdateSummary(UpdateCounter updateCount, Duration duration) {
-		this.updateCount = updateCount.getCount();
-		this.duration = duration;
+	private BulkUpdateSummary() {
+		startTime = Instant.now();
 	}
 
-	public long getUpdateCount() {
-		return updateCount;
+	public static BulkUpdateSummary start() {
+		BulkUpdateSummary bulkUpdateSummary = new BulkUpdateSummary();
+		return bulkUpdateSummary;
+	}
+
+	public void finish() {
+		this.duration = Duration.between(startTime, Instant.now());
 	}
 
 	public long getSeconds() {
@@ -28,10 +34,23 @@ public class BulkUpdateSummary {
 		return duration.toMinutes();
 	}
 
+	public int incrementAndGet() {
+		return ++this.updateCount;
+	}
+
+	public void sumUpdateCount(int sum) {
+		this.updateCount = this.updateCount + sum;
+	}
+
+	public long getUpdateCount() {
+		return updateCount;
+	}
+
 	@Override
 	public String toString() {
-		return "BatchUpdateSummary [getUpdateCount()=" + getUpdateCount() + ", getSeconds()=" + getSeconds()
-				+ ", getHours()=" + getHours() + ", getMinutes()=" + getMinutes() + "]";
+		return "BulkUpdateSummary [updateCount=" + updateCount + ", startTime=" + startTime + ", duration=" + duration
+				+ ", getSeconds()=" + getSeconds() + ", getHours()=" + getHours() + ", getMinutes()=" + getMinutes()
+				+ "]";
 	}
 
 }
