@@ -51,8 +51,8 @@ public class BulkUpdate<T> extends BulkOperation {
 							this.preparedStatement.addBatch();
 
 							if ((bulkUpdateSummary.incrementAndGet() % this.bulkSize) == 0) {
-								int updateCount = preparedStatement.executeBatch().length;
-								preparedStatement.clearBatch();
+								int updateCount = this.preparedStatement.executeBatch().length;
+								this.preparedStatement.clearBatch();
 								super.logIfAvailable("{} rows updated.", updateCount);
 							}
 

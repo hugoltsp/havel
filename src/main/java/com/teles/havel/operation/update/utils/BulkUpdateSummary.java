@@ -10,7 +10,7 @@ public final class BulkUpdateSummary {
 	private Duration duration;
 
 	private BulkUpdateSummary() {
-		startTime = Instant.now();
+		this.startTime = Instant.now();
 	}
 
 	public static BulkUpdateSummary start() {
@@ -19,7 +19,7 @@ public final class BulkUpdateSummary {
 	}
 
 	public void finish() {
-		this.duration = Duration.between(startTime, Instant.now());
+		this.duration = Duration.between(this.startTime, Instant.now());
 	}
 
 	public long getSeconds() {
