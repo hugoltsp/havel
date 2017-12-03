@@ -1,4 +1,4 @@
-package com.teles.havel.operation.exception;
+package com.teles.havel.batch.exception;
 
 public class HavelException extends RuntimeException {
 

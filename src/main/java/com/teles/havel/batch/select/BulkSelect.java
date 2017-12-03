@@ -1,4 +1,4 @@
-package com.teles.havel.operation.select;
+package com.teles.havel.batch.select;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -13,31 +13,36 @@ import java.util.stream.StreamSupport;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.operation.BulkOperation;
-import com.teles.havel.operation.exception.HavelException;
-import com.teles.havel.operation.select.function.OutputMapperFunction;
-import com.teles.havel.operation.select.utils.Row;
+import com.teles.havel.batch.BatchOperation;
+import com.teles.havel.batch.enums.LogLevel;
+import com.teles.havel.batch.exception.HavelException;
+import com.teles.havel.batch.select.function.OutputMapperFunction;
+import com.teles.havel.batch.select.utils.Row;
 
-public class BulkSelect<T> extends BulkOperation {
+public class BulkSelect<T> extends BatchOperation {
 
 	private final OutputMapperFunction<T> outputMapper;
 	private int rowCount;
 
-	public BulkSelect(Logger logger, Connection connection, String sqlStatement, PreparedStatement preparedStatement,
-			OutputMapperFunction<T> outputMapper) {
-		super(logger, connection, sqlStatement, preparedStatement);
+	BulkSelect(Logger logger, LogLevel logLevel, Connection connection, String sqlStatement,
+			PreparedStatement preparedStatement, OutputMapperFunction<T> outputMapper) {
+		super(logger, logLevel, connection, sqlStatement, preparedStatement);
 		this.outputMapper = outputMapper;
+		validateOutputMapper();
+	}
+	
+	public static <T> BulkSelectBuilder<T> builder(){
+		return new BulkSelectBuilder<>();
 	}
 
 	public Stream<T> select() throws HavelException, IllegalStateException {
-		this.checkState();
-		super.logIfAvailable("fetching rows from database...");
+		logIfAvailable("Fetching rows from database...");
 		ResultSet resultSet = fetchResultSet();
 		return StreamSupport.stream(spliterator(resultSet), false).onClose(() -> {
 			try {
 				this.close();
-			} catch (Exception e) {
-				throw new HavelException(e);
+			} catch (SQLException e) {
+				logIfAvailable("An error occurred while trying to close this resource", e);
 			}
 		});
 	}
@@ -61,8 +66,7 @@ public class BulkSelect<T> extends BulkOperation {
 		};
 	}
 
-	protected void checkState() throws IllegalStateException {
-		super.checkState();
+	private void validateOutputMapper() {
 		if (this.outputMapper == null) {
 			throw new IllegalStateException("OutputMapper can't be null");
 		}
@@ -73,7 +77,7 @@ public class BulkSelect<T> extends BulkOperation {
 			ResultSet resultSet = this.preparedStatement.executeQuery();
 			return resultSet;
 		} catch (SQLException e) {
-			throw new HavelException(e);
+			throw new HavelException("Could not fetch result set", e);
 		}
 	}
 

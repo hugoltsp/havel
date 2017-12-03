@@ -1,12 +1,11 @@
-package com.teles.havel.builder.update;
+package com.teles.havel.batch.update;
 
 import java.sql.SQLException;
 import java.util.stream.Stream;
 
-import com.teles.havel.builder.Builder;
-import com.teles.havel.operation.exception.HavelException;
-import com.teles.havel.operation.update.BulkUpdate;
-import com.teles.havel.operation.update.function.StatementMapperFunction;
+import com.teles.havel.batch.builder.Builder;
+import com.teles.havel.batch.exception.HavelException;
+import com.teles.havel.batch.update.function.StatementMapperFunction;
 
 public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpdate<T>> {
 
@@ -15,12 +14,11 @@ public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpda
 	private long bulkSize = DEFAULT_BULK_SIZE;
 	private StatementMapperFunction<T> statementMapperFunction;
 	private Stream<T> data;
+	private boolean commitBetweenExecutions;
 
-	private BulkUpdateBuilder() {
-	}
-
-	public static <T> BulkUpdateBuilder<T> create() {
-		return new BulkUpdateBuilder<>();
+	public BulkUpdateBuilder<T> withCommitBetweenExecutions(boolean commitBetweenExecutions) {
+		this.commitBetweenExecutions = commitBetweenExecutions;
+		return this;
 	}
 
 	public BulkUpdateBuilder<T> withData(Stream<T> data) {
@@ -41,9 +39,9 @@ public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpda
 	public BulkUpdate<T> build() throws HavelException, IllegalStateException {
 		BulkUpdate<T> bulkUpdate = null;
 		try {
-			bulkUpdate = new BulkUpdate<>(this.logger, this.connection, this.sqlStatement,
-					this.connection.prepareStatement(this.sqlStatement), this.bulkSize, this.statementMapperFunction,
-					this.data);
+			bulkUpdate = new BulkUpdate<>(logger, logLevel, connection, sqlStatement,
+					connection.prepareStatement(sqlStatement), bulkSize, statementMapperFunction, data,
+					commitBetweenExecutions);
 		} catch (SQLException e) {
 			throw new HavelException("Unable to build BulkUpdate", e);
 		}

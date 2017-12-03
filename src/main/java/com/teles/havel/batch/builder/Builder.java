@@ -1,16 +1,18 @@
-package com.teles.havel.builder;
+package com.teles.havel.batch.builder;
 
 import java.sql.Connection;
 
 import org.slf4j.Logger;
 
-import com.teles.havel.operation.BulkOperation;
+import com.teles.havel.batch.BatchOperation;
+import com.teles.havel.batch.enums.LogLevel;
 
-public abstract class Builder<T extends Builder<T, O>, O extends BulkOperation> {
+public abstract class Builder<T extends Builder<T, O>, O extends BatchOperation> {
 
 	protected Logger logger;
 	protected Connection connection;
 	protected String sqlStatement;
+	protected LogLevel logLevel;
 
 	public T withConnection(Connection connection) {
 		this.connection = connection;
@@ -27,13 +29,13 @@ public abstract class Builder<T extends Builder<T, O>, O extends BulkOperation> 
 		return getThis();
 	}
 
-	protected void logIfAvailable(String log, Object... params) {
-		if (this.logger != null) {
-			this.logger.info(log, params);
-		}
+	public T withLoggerLevel(LogLevel level) {
+		this.logLevel = level;
+		return getThis();
 	}
 
 	public abstract O build();
 
 	protected abstract T getThis();
+
 }
