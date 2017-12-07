@@ -30,10 +30,6 @@ public class BulkSelect<T> extends BatchOperation {
 		this.outputMapper = outputMapper;
 		validateOutputMapper();
 	}
-	
-	public static <T> BulkSelectBuilder<T> builder(){
-		return new BulkSelectBuilder<>();
-	}
 
 	public Stream<T> select() throws HavelException, IllegalStateException {
 		logIfAvailable("Fetching rows from database...");

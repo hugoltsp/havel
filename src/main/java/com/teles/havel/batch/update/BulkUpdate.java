@@ -37,10 +37,6 @@ public class BulkUpdate<T> extends BatchOperation {
 		validateStatementMapper();
 	}
 
-	public static <T> BulkUpdateBuilder<T> builder() {
-		return new BulkUpdateBuilder<>();
-	}
-
 	public BulkUpdateSummary execute() throws HavelException, IllegalStateException {
 		BulkUpdateSummary bulkUpdateSummary = null;
 
@@ -52,26 +48,25 @@ public class BulkUpdate<T> extends BatchOperation {
 			logIfAvailable("Commit between updates set to: {}", this.commitBetweenExecutions);
 			logIfAvailable("Executing update...");
 
-			this.data.filter(Objects::nonNull).sequential()
-					.map(p -> statementMapperFunction.apply(new StatementParameters(), p)).forEach(s -> {
+			this.data.filter(Objects::nonNull).sequential().map(this::dataToStatementParameters).forEach(s -> {
 
-						try {
+				try {
 
-							for (Entry<Integer, Object> param : s.getParameters().entrySet()) {
-								this.preparedStatement.setObject(param.getKey(), param.getValue());
-							}
+					for (Entry<Integer, Object> param : s.getParameters().entrySet()) {
+						this.preparedStatement.setObject(param.getKey(), param.getValue());
+					}
 
-							this.preparedStatement.addBatch();
+					this.preparedStatement.addBatch();
 
-							if ((bulkUpdateSummaryBuilder.incrementAndGet() % this.bulkSize) == 0) {
-								updateAndCount();
-							}
+					if ((bulkUpdateSummaryBuilder.incrementAndGet() % this.bulkSize) == 0) {
+						updateAndCount();
+					}
 
-						} catch (SQLException e) {
-							throw new HavelException(e);
-						}
+				} catch (SQLException e) {
+					throw new HavelException(e);
+				}
 
-					});
+			});
 
 			bulkUpdateSummary = bulkUpdateSummaryBuilder.sumUpdateCount(updateAndCount()).finish().build();
 			logIfAvailable("Finished! commiting transaction.");
@@ -91,6 +86,10 @@ public class BulkUpdate<T> extends BatchOperation {
 		return bulkUpdateSummary;
 	}
 
+	private StatementParameters dataToStatementParameters(T data) {
+		return statementMapperFunction.apply(new StatementParameters(), data);
+	}
+
 	private int updateAndCount() throws SQLException {
 		int updateCount = this.preparedStatement.executeBatch().length;
 		this.preparedStatement.clearBatch();
@@ -98,7 +97,6 @@ public class BulkUpdate<T> extends BatchOperation {
 		if (updateCount > 0) {
 			logIfAvailable("{} rows updated.", updateCount);
 			if (commitBetweenExecutions) {
-				logIfAvailable("Commiting data..");
 				this.connection.commit();
 			}
 		}
