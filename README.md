@@ -10,13 +10,16 @@ Havel is a simple library for JDBC batch processing, it's mainly written on top 
 Connection connection = getMyConnection();
 Stream<User> users = getMyUsers();
 
-BulkUpdate<User> bulkUpdateOperation = Builders.<User> bulkUpdate()
-    .withLogger(LoggerFactory.getLogger("some-logger-name")) //optional
-    .withConnection(connection)
-    .withSqlStatement("INSERT INTO user (name, email) VALUES (?, ?)")
-    .withData(users)
-    .withBulkSize(500)
-    .withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail())).build();
+BulkUpdate<User> bulkUpdateOperation = new BulkUpdateBuilder<User>()
+		.withLogger(LoggerFactory.getLogger("myLogger")) //optional
+		.withLoggerLevel(LogLevel.INFO) //optional
+		.withConnection(connection)
+		.withSqlStatement("INSERT INTO USER (NAME, EMAIL) VALUES (?, ?)")
+		.withData(users)
+		.withBulkSize(10_000)
+		.withCommitBetweenExecutions(true) //optional
+		.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail()))
+		.build();
 
 BulkUpdateSummary summary = bulkUpdateOperation.execute();
 
@@ -26,20 +29,18 @@ BulkUpdateSummary summary = bulkUpdateOperation.execute();
 ```java
 Connection connection = getMyConnection();
 
-BulkSelect<User> bulkSelectOperation = Builders.<User>bulkSelect()
-    .withLogger(LoggerFactory.getLogger("some-logger-name")) //optional
-    .withConnection(connection)
-    .withSqlStatement("SELECT name, email FROM user")
-    .withOutputMapper(row -> {
-       String name = row.getColumn("name", String.class);
-       String email = row.getColumn("email", String.class);
-       User u = new User();
-       u.setEmail(email);
-       u.setName(name);
-       return u;
-     }).build();
-				
-Stream<User> users = bulkSelectOperation.select();
+BulkSelect<Object> bulkSelect = new BulkSelectBuilder<>()
+			.withLogger(LoggerFactory.getLogger("myLogger"))
+			.withConnection(connection)
+			.withSqlStatement("SELECT NAME, EMAIL FROM USER")
+			.withOutputMapper(row -> {
+				User u = new User();
+				u.setEmail(row.getColumn("EMAIL", String.class));
+				u.setName(row.getColumn("NAME", String.class));
+				return u;
+			}).build();
+			
+Stream<User> users = bulkSelect.select();
 
 ```
 

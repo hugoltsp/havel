@@ -34,15 +34,15 @@ public class BulkUpdateTest {
 	@Test
 	public void bulk_update_test() throws Exception {
 
-		Stream<User> users = Stream.generate(User::mockUser).limit(1_000_00);
+		Stream<User> users = Stream.generate(User::mockUser).limit(100_000);
 
 		BulkUpdate<User> bulkUpdateOperation = new BulkUpdateBuilder<User>()
-				.withLogger(LoggerFactory.getLogger("myTestLogger")) // optional
-				.withLoggerLevel(LogLevel.INFO) // optional
+				.withLogger(LoggerFactory.getLogger("myTestLogger"))
+				.withLoggerLevel(LogLevel.INFO)
 				.withConnection(connection)
 				.withSqlStatement(Constants.SQL_INSERT)
 				.withData(users)
-				.withBulkSize(10000)
+				.withBulkSize(10_000)
 				.withCommitBetweenExecutions(true)
 				.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail()))
 				.build();
