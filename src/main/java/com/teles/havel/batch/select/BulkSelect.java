@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 
 import com.teles.havel.batch.BatchOperation;
 import com.teles.havel.batch.enums.LogLevel;
-import com.teles.havel.batch.exception.HavelException;
+import com.teles.havel.batch.exception.BatchException;
 import com.teles.havel.batch.select.function.OutputMapperFunction;
 import com.teles.havel.batch.select.utils.Row;
 
@@ -31,7 +31,7 @@ public class BulkSelect<T> extends BatchOperation {
 		validateOutputMapper();
 	}
 
-	public Stream<T> select() throws HavelException, IllegalStateException {
+	public Stream<T> select() throws BatchException, IllegalStateException {
 		logIfAvailable("Fetching rows from database...");
 		ResultSet resultSet = fetchResultSet();
 		return StreamSupport.stream(spliterator(resultSet), false).onClose(() -> {
@@ -56,7 +56,7 @@ public class BulkSelect<T> extends BatchOperation {
 					rowCount++;
 					return true;
 				} catch (SQLException ex) {
-					throw new HavelException(ex);
+					throw new BatchException(ex);
 				}
 			}
 		};
@@ -68,12 +68,12 @@ public class BulkSelect<T> extends BatchOperation {
 		}
 	}
 
-	private ResultSet fetchResultSet() throws HavelException {
+	private ResultSet fetchResultSet() throws BatchException {
 		try {
 			ResultSet resultSet = this.preparedStatement.executeQuery();
 			return resultSet;
 		} catch (SQLException e) {
-			throw new HavelException("Could not fetch result set", e);
+			throw new BatchException("Could not fetch result set", e);
 		}
 	}
 

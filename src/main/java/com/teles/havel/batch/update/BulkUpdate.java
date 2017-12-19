@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 
 import com.teles.havel.batch.BatchOperation;
 import com.teles.havel.batch.enums.LogLevel;
-import com.teles.havel.batch.exception.HavelException;
+import com.teles.havel.batch.exception.BatchException;
 import com.teles.havel.batch.update.function.StatementMapperFunction;
 import com.teles.havel.batch.update.utils.BulkUpdateSummary;
 import com.teles.havel.batch.update.utils.StatementParameters;
@@ -37,7 +37,7 @@ public class BulkUpdate<T> extends BatchOperation {
 		validateStatementMapper();
 	}
 
-	public BulkUpdateSummary execute() throws HavelException, IllegalStateException {
+	public BulkUpdateSummary execute() throws BatchException, IllegalStateException {
 		BulkUpdateSummary bulkUpdateSummary = null;
 
 		try (BatchOperation builder = this) {
@@ -63,7 +63,7 @@ public class BulkUpdate<T> extends BatchOperation {
 					}
 
 				} catch (SQLException e) {
-					throw new HavelException(e);
+					throw new BatchException(e);
 				}
 
 			});
@@ -72,7 +72,7 @@ public class BulkUpdate<T> extends BatchOperation {
 			logIfAvailable("Finished! commiting transaction.");
 			this.connection.commit();
 		} catch (SQLException e) {
-			HavelException exception = new HavelException(e);
+			BatchException exception = new BatchException(e);
 
 			try {
 				this.connection.rollback();

@@ -3,7 +3,7 @@ package com.teles.havel.batch.select.utils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.teles.havel.batch.exception.HavelException;
+import com.teles.havel.batch.exception.BatchException;
 
 public class Row {
 
@@ -15,21 +15,22 @@ public class Row {
 		this.columnCount = resultSet.getMetaData().getColumnCount();
 	}
 
-	public <T> T getColumn(String name, Class<T> clazz) throws HavelException {
+	public <T> T getColumn(String name, Class<T> clazz) throws BatchException {
 		T columnObject = null;
 
+		
 		try {
 
-			columnObject = this.resultSet.getObject(name, clazz);
-
+			columnObject = getColumn(resultSet.findColumn(name), clazz);
+			
 		} catch (SQLException e) {
-			throw new HavelException(e);
+			throw new BatchException(e);
 		}
 
 		return columnObject;
 	}
 
-	public <T> T getColumn(int number, Class<T> clazz) throws HavelException, IllegalArgumentException {
+	public <T> T getColumn(int number, Class<T> clazz) throws BatchException, IllegalArgumentException {
 
 		if (number < 1 || number > this.columnCount) {
 			throw new IllegalArgumentException("Column number out of bounds: " + number);
@@ -42,7 +43,7 @@ public class Row {
 			columnObject = this.resultSet.getObject(number, clazz);
 
 		} catch (SQLException e) {
-			throw new HavelException(e);
+			throw new BatchException(e);
 		}
 
 		return columnObject;

@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.stream.Stream;
 
 import com.teles.havel.batch.builder.Builder;
-import com.teles.havel.batch.exception.HavelException;
+import com.teles.havel.batch.exception.BatchException;
 import com.teles.havel.batch.update.function.StatementMapperFunction;
 
 public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpdate<T>> {
@@ -36,14 +36,14 @@ public class BulkUpdateBuilder<T> extends Builder<BulkUpdateBuilder<T>, BulkUpda
 		return this;
 	}
 
-	public BulkUpdate<T> build() throws HavelException, IllegalStateException {
+	public BulkUpdate<T> build() throws BatchException, IllegalStateException {
 		BulkUpdate<T> bulkUpdate = null;
 		try {
 			bulkUpdate = new BulkUpdate<>(logger, logLevel, connection, sqlStatement,
 					connection.prepareStatement(sqlStatement), bulkSize, statementMapperFunction, data,
 					commitBetweenExecutions);
 		} catch (SQLException e) {
-			throw new HavelException("Unable to build BulkUpdate", e);
+			throw new BatchException("Unable to build BulkUpdate", e);
 		}
 		return bulkUpdate;
 	}
