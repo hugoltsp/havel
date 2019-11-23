@@ -10,7 +10,7 @@ Havel is a simple library for JDBC batch processing, it's mainly written on top 
 Connection connection = getMyConnection();
 Stream<User> users = getMyUsers();
 
-BulkUpdate<User> bulkUpdateOperation = new BulkUpdateBuilder<User>()
+BulkUpdate<User> bulkUpdateOperation = new BulkUpdateBuilder<>()
 		.withLogger(LoggerFactory.getLogger("myLogger")) //optional
 		.withLoggerLevel(LogLevel.INFO) //optional
 		.withConnection(connection)
@@ -21,7 +21,7 @@ BulkUpdate<User> bulkUpdateOperation = new BulkUpdateBuilder<User>()
 		.withStatementMapper((t, u) -> t.addParameter(u.getName()).addParameter(u.getEmail()))
 		.build();
 
-BulkUpdateSummary summary = bulkUpdateOperation.execute();
+BulkUpdateSummary summary = bulkUpdateOperation.execute(); // returns info about executed batch update such as elapsed time
 
 ```
 #### Select
