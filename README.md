@@ -29,7 +29,7 @@ BulkUpdateSummary summary = bulkUpdateOperation.execute();
 ```java
 Connection connection = getMyConnection();
 
-BulkSelect<Object> bulkSelect = new BulkSelectBuilder<>()
+BulkSelect<User> bulkSelect = new BulkSelectBuilder<>()
 			.withLogger(LoggerFactory.getLogger("myLogger"))
 			.withConnection(connection)
 			.withSqlStatement("SELECT NAME, EMAIL FROM USER")
